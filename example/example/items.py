@@ -5,10 +5,12 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 
-import scrapy
+from scrapy import Field, Item
 
 
-class ExampleItem(scrapy.Item):
+class BookItem(Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    name = Field()
+    tags = Field()
+    score = Field()

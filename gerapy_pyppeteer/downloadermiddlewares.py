@@ -189,3 +189,4 @@ class PyppeteerMiddleware(object):
         :return:
         """
         return as_deferred(self._spider_closed())
+
