@@ -1,2 +1,2 @@
-scrapy>=1.5.0
+scrapy>=2.0.0
 pyppeteer

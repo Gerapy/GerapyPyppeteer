@@ -1,103 +1,190 @@
-# -*- coding: utf-8 -*-
+import sys
+import asyncio
+from scrapy.http import HtmlResponse
+import twisted.internet
+from twisted.internet.asyncioreactor import AsyncioSelectorReactor
+from twisted.internet.defer import Deferred
+from gerapy_pyppeteer.request import PyppeteerRequest
+from pyppeteer import launch
 
-# Define here the models for your spider middleware
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+from gerapy_pyppeteer.settings import *
 
-from scrapy import signals
+reactor = AsyncioSelectorReactor(asyncio.get_event_loop())
+
+# install AsyncioSelectorReactor
+twisted.internet.reactor = reactor
+sys.modules['twisted.internet.reactor'] = reactor
 
 
-class ExampleSpiderMiddleware:
-    # Not all methods need to be defined. If a method is not defined,
-    # scrapy acts as if the spider middleware does not modify the
-    # passed objects.
+def as_deferred(f):
+    """
+    transform a Twisted Deffered to an Asyncio Future
+    :param f: async function
+    """
+    return Deferred.fromFuture(asyncio.ensure_future(f))
 
+
+logger = logging.getLogger('gerapy.pyppeteer')
+
+
+class PyppeteerMiddleware(object):
+    """
+    Downloader middleware handling the requests with Puppeteer
+    """
+    
     @classmethod
     def from_crawler(cls, crawler):
-        # This method is used by Scrapy to create your spiders.
-        s = cls()
-        crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
-        return s
-
-    def process_spider_input(self, response, spider):
-        # Called for each response that goes through the spider
-        # middleware and into the spider.
-
-        # Should return None or raise an exception.
-        return None
-
-    def process_spider_output(self, response, result, spider):
-        # Called with the results returned from the Spider, after
-        # it has processed the response.
-
-        # Must return an iterable of Request, dict or Item objects.
-        for i in result:
-            yield i
-
-    def process_spider_exception(self, response, exception, spider):
-        # Called when a spider or process_spider_input() method
-        # (from other spider middleware) raises an exception.
-
-        # Should return either None or an iterable of Request, dict
-        # or Item objects.
-        pass
-
-    def process_start_requests(self, start_requests, spider):
-        # Called with the start requests of the spider, and works
-        # similarly to the process_spider_output() method, except
-        # that it doesn’t have a response associated.
-
-        # Must return only requests (not items).
-        for r in start_requests:
-            yield r
-
-    def spider_opened(self, spider):
-        spider.logger.info('Spider opened: %s' % spider.name)
-
-
-class ExampleDownloaderMiddleware:
-    # Not all methods need to be defined. If a method is not defined,
-    # scrapy acts as if the downloader middleware does not modify the
-    # passed objects.
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        # This method is used by Scrapy to create your spiders.
-        s = cls()
-        crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
-        return s
-
+        """
+        init the middleware
+        :param crawler:
+        :return:
+        """
+        settings = crawler.settings
+        logging_level = settings.get('GERAPY_PYPPETEER_LOGGING_LEVEL', GERAPY_PYPPETEER_LOGGING_LEVEL)
+        logging.getLogger('websockets').setLevel(logging_level)
+        logging.getLogger('pyppeteer').setLevel(logging_level)
+        
+        # init settings
+        cls.window_width = settings.get('GERAPY_PYPPETEER_WINDOW_WIDTH', GERAPY_PYPPETEER_WINDOW_WIDTH)
+        cls.window_height = settings.get('GERAPY_PYPPETEER_WINDOW_HEIGHT', GERAPY_PYPPETEER_WINDOW_HEIGHT)
+        cls.headless = settings.get('GERAPY_PYPPETEER_HEADLESS', GERAPY_PYPPETEER_HEADLESS)
+        cls.dumpio = settings.get('GERAPY_PYPPETEER_DUMPIO', GERAPY_PYPPETEER_DUMPIO)
+        cls.devtools = settings.get('GERAPY_PYPPETEER_DEVTOOLS', GERAPY_PYPPETEER_DEVTOOLS)
+        cls.executable_path = settings.get('GERAPY_PYPPETEER_EXECUTABLE_PATH', GERAPY_PYPPETEER_EXECUTABLE_PATH)
+        cls.disable_extensions = settings.get('GERAPY_PYPPETEER_DISABLE_EXTENSIONS',
+                                              GERAPY_PYPPETEER_DISABLE_EXTENSIONS)
+        cls.hide_scrollbars = settings.get('GERAPY_PYPPETEER_HIDE_SCROLLBARS', GERAPY_PYPPETEER_HIDE_SCROLLBARS)
+        cls.mute_audio = settings.get('GERAPY_PYPPETEER_MUTE_AUDIO', GERAPY_PYPPETEER_MUTE_AUDIO)
+        cls.no_sandbox = settings.get('GERAPY_PYPPETEER_NO_SANDBOX', GERAPY_PYPPETEER_NO_SANDBOX)
+        cls.disable_setuid_sandbox = settings.get('GERAPY_PYPPETEER_DISABLE_SETUID_SANDBOX',
+                                                  GERAPY_PYPPETEER_DISABLE_SETUID_SANDBOX)
+        cls.disable_gpu = settings.get('GERAPY_PYPPETEER_DISABLE_GPU', GERAPY_PYPPETEER_DISABLE_GPU)
+        cls.download_timeout = settings.get('GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT',
+                                            settings.get('DOWNLOAD_TIMEOUT', GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT))
+        return cls()
+    
+    async def _process_request(self, request: PyppeteerRequest, spider):
+        """
+        use pyppeteer to process spider
+        :param request:
+        :param spider:
+        :return:
+        """
+        options = {
+            'headless': self.headless,
+            'dumpio': self.dumpio,
+            'devtools': self.devtools,
+            'args': [
+                f'--window-size={self.window_width},{self.window_height}',
+            ]
+        }
+        if self.executable_path: options['executable_path'] = self.executable_path
+        if self.disable_extensions: options['args'].append('--disable-extensions')
+        if self.hide_scrollbars: options['args'].append('--hide-scrollbars')
+        if self.mute_audio: options['args'].append('--mute-audio')
+        if self.no_sandbox: options['args'].append('--no-sandbox')
+        if self.disable_setuid_sandbox: options['args'].append('--disable-setuid-sandbox')
+        if self.disable_gpu: options['args'].append('--disable-gpu')
+        if request.proxy: options['args'].append(f'--proxy-server={request.proxy}')
+        
+        logger.debug('set options %s', options)
+        
+        browser = await launch(options)
+        page = await browser.newPage()
+        await page.setViewport({'width': self.window_width, 'height': self.window_height})
+        
+        # set cookies
+        if isinstance(request.cookies, dict):
+            await page.setCookie(*[
+                {'name': k, 'value': v}
+                for k, v in request.cookies.items()
+            ])
+        else:
+            await page.setCookie(request.cookies)
+        
+        # the headers must be set using request interception
+        await page.setRequestInterception(True)
+        
+        @page.on('request')
+        async def _handle_headers(pu_request):
+            overrides = {
+                'headers': {
+                    k.decode(): ','.join(map(lambda v: v.decode(), v))
+                    for k, v in request.headers.items()
+                }
+            }
+            await pu_request.continue_(overrides=overrides)
+        
+        timeout = self.download_timeout
+        if request.timeout is not None:
+            timeout = request.timeout
+        
+        logger.debug('crawling %s', request.url)
+        response = await page.goto(
+            request.url,
+            options={
+                'timeout': 1000 * timeout,
+                'waitUntil': request.wait_until
+            }
+        )
+        
+        if request.wait_for:
+            logger.debug('waiting for %s finished', request.url)
+            await page.waitFor(request.wait_for)
+            logger.debug('wait for %s finished', request.url)
+        
+        # evaluate script
+        if request.script:
+            logger.debug('evaluating %s', request.script)
+            await page.evaluate(request.script)
+        
+        # sleep
+        if request.sleep is not None:
+            logger.debug('sleep for %ss', request.sleep)
+            await asyncio.sleep(request.sleep)
+        
+        content = await page.content()
+        body = str.encode(content)
+        
+        # close page and browser
+        logger.debug('close pyppeteer')
+        await page.close()
+        await browser.close()
+        
+        # Necessary to bypass the compression middleware (?)
+        response.headers.pop('content-encoding', None)
+        response.headers.pop('Content-Encoding', None)
+        
+        return HtmlResponse(
+            page.url,
+            status=response.status,
+            headers=response.headers,
+            body=body,
+            encoding='utf-8',
+            request=request
+        )
+    
     def process_request(self, request, spider):
-        # Called for each request that goes through the downloader
-        # middleware.
-
-        # Must either:
-        # - return None: continue processing this request
-        # - or return a Response object
-        # - or return a Request object
-        # - or raise IgnoreRequest: process_exception() methods of
-        #   installed downloader middleware will be called
-        return None
-
-    def process_response(self, request, response, spider):
-        # Called with the response returned from the downloader.
-
-        # Must either;
-        # - return a Response object
-        # - return a Request object
-        # - or raise IgnoreRequest
-        return response
-
-    def process_exception(self, request, exception, spider):
-        # Called when a download handler or a process_request()
-        # (from other downloader middleware) raises an exception.
-
-        # Must either:
-        # - return None: continue processing this exception
-        # - return a Response object: stops process_exception() chain
-        # - return a Request object: stops process_exception() chain
+        """
+        process request using pyppeteer
+        :param request:
+        :param spider:
+        :return:
+        """
+        logger.debug('processing request %s', request)
+        
+        if not isinstance(request, PyppeteerRequest):
+            logger.info('request is not PyppeteerRequest, just return')
+            return None
+        
+        return as_deferred(self._process_request(request, spider))
+    
+    async def _spider_closed(self):
         pass
-
-    def spider_opened(self, spider):
-        spider.logger.info('Spider opened: %s' % spider.name)
+    
+    def spider_closed(self):
+        """
+        callback when spider closed
+        :return:
+        """
+        return as_deferred(self._spider_closed())

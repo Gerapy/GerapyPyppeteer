@@ -24,8 +24,6 @@ def as_deferred(f):
     return Deferred.fromFuture(asyncio.ensure_future(f))
 
 
-width, height = 1366, 768
-
 logger = logging.getLogger('gerapy.pyppeteer')
 
 
@@ -63,6 +61,7 @@ class PyppeteerMiddleware(object):
         cls.disable_gpu = settings.get('GERAPY_PYPPETEER_DISABLE_GPU', GERAPY_PYPPETEER_DISABLE_GPU)
         cls.download_timeout = settings.get('GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT',
                                             settings.get('DOWNLOAD_TIMEOUT', GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT))
+        return cls()
     
     async def _process_request(self, request: PyppeteerRequest, spider):
         """
@@ -92,11 +91,10 @@ class PyppeteerMiddleware(object):
         
         browser = await launch(options)
         page = await browser.newPage()
-        await page.setViewport({'width': width, 'height': height})
+        await page.setViewport({'width': self.window_width, 'height': self.window_height})
         
         # set cookies
         if isinstance(request.cookies, dict):
-            logger.debug('set cookies %s', request.cookies)
             await page.setCookie(*[
                 {'name': k, 'value': v}
                 for k, v in request.cookies.items()
@@ -135,9 +133,6 @@ class PyppeteerMiddleware(object):
             await page.waitFor(request.wait_for)
             logger.debug('wait for %s finished', request.url)
         
-        content = await page.content()
-        body = str.encode(content)
-        
         # evaluate script
         if request.script:
             logger.debug('evaluating %s', request.script)
@@ -145,8 +140,11 @@ class PyppeteerMiddleware(object):
         
         # sleep
         if request.sleep is not None:
-            logger.debug('sleep for %ss', request.script)
+            logger.debug('sleep for %ss', request.sleep)
             await asyncio.sleep(request.sleep)
+        
+        content = await page.content()
+        body = str.encode(content)
         
         # close page and browser
         logger.debug('close pyppeteer')
@@ -173,6 +171,7 @@ class PyppeteerMiddleware(object):
         :param spider:
         :return:
         """
+        logger.debug('processing request %s', request)
         
         if not isinstance(request, PyppeteerRequest):
             logger.info('request is not PyppeteerRequest, just return')
@@ -189,4 +188,3 @@ class PyppeteerMiddleware(object):
         :return:
         """
         return as_deferred(self._spider_closed())
-

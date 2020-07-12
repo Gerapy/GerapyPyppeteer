@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
 import scrapy
-from example.example.items import BookItem
+from example.items import BookItem
 from gerapy_pyppeteer import PyppeteerRequest
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BookSpider(scrapy.Spider):
@@ -16,7 +19,8 @@ class BookSpider(scrapy.Spider):
         :return:
         """
         start_url = f'{self.base_url}/page/1'
-        yield PyppeteerRequest(start_url, callback=self.parse_index)
+        logger.info('crawling %s', start_url)
+        yield PyppeteerRequest(start_url, callback=self.parse_index, sleep=5)
     
     def parse_index(self, response):
         """
@@ -27,16 +31,15 @@ class BookSpider(scrapy.Spider):
         items = response.css('.item')
         for item in items:
             href = item.css('.top a::attr(href)').extract_first()
-            print('href', href)
             detail_url = response.urljoin(href)
-            yield PyppeteerRequest(detail_url, callback=self.parse_detail)
+            yield PyppeteerRequest(detail_url, callback=self.parse_detail, sleep=5)
         
         # next page
         match = re.search(r'page/(\d+)', response.url)
         if not match: return
-        page = int(match.group(1))
+        page = int(match.group(1)) + 1
         next_url = f'{self.base_url}/page/{page}'
-        yield PyppeteerRequest(next_url, callback=self.parse_index)
+        yield PyppeteerRequest(next_url, callback=self.parse_index, sleep=5)
     
     def parse_detail(self, response):
         """
@@ -47,4 +50,6 @@ class BookSpider(scrapy.Spider):
         name = response.css('.name::text').extract_first()
         tags = response.css('.tags button span::text').extract()
         score = response.css('.score::text').extract_first()
+        tags = [tag.strip() for tag in tags] if tags else []
+        score = score.strip() if score else None
         yield BookItem(name=name, tags=tags, score=score)

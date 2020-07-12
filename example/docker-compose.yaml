@@ -1,0 +1,8 @@
+version: '3'
+services:
+  gerapy-pyppeteer-example:
+    container_name: 'gerapy-pyppeteer-example'
+    restart: always
+    build: .
+    image: 'germey/gerapy-pyppeteer-example'
+    command: 'python3 run.py'
