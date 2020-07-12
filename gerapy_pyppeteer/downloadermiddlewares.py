@@ -85,7 +85,12 @@ class PyppeteerMiddleware(object):
         if self.no_sandbox: options['args'].append('--no-sandbox')
         if self.disable_setuid_sandbox: options['args'].append('--disable-setuid-sandbox')
         if self.disable_gpu: options['args'].append('--disable-gpu')
-        if request.proxy: options['args'].append(f'--proxy-server={request.proxy}')
+        
+        # set proxy
+        proxy = request.proxy
+        if not proxy:
+            proxy = request.meta.get('proxy')
+        if proxy: options['args'].append(f'--proxy-server={proxy}')
         
         logger.debug('set options %s', options)
         
@@ -129,9 +134,9 @@ class PyppeteerMiddleware(object):
         )
         
         if request.wait_for:
-            logger.debug('waiting for %s finished', request.url)
+            logger.debug('waiting for %s finished', request.wait_for)
             await page.waitFor(request.wait_for)
-            logger.debug('wait for %s finished', request.url)
+            logger.debug('wait for %s finished', request.wait_for)
         
         # evaluate script
         if request.script:

@@ -20,7 +20,7 @@ class BookSpider(scrapy.Spider):
         """
         start_url = f'{self.base_url}/page/1'
         logger.info('crawling %s', start_url)
-        yield PyppeteerRequest(start_url, callback=self.parse_index, sleep=5)
+        yield PyppeteerRequest(start_url, callback=self.parse_index, wait_for='.item .name')
     
     def parse_index(self, response):
         """
@@ -32,14 +32,14 @@ class BookSpider(scrapy.Spider):
         for item in items:
             href = item.css('.top a::attr(href)').extract_first()
             detail_url = response.urljoin(href)
-            yield PyppeteerRequest(detail_url, callback=self.parse_detail, sleep=5)
+            yield PyppeteerRequest(detail_url, callback=self.parse_detail, wait_for='.item .name')
         
         # next page
         match = re.search(r'page/(\d+)', response.url)
         if not match: return
         page = int(match.group(1)) + 1
         next_url = f'{self.base_url}/page/{page}'
-        yield PyppeteerRequest(next_url, callback=self.parse_index, sleep=5)
+        yield PyppeteerRequest(next_url, callback=self.parse_index, wait_for='.item .name')
     
     def parse_detail(self, response):
         """
