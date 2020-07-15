@@ -23,7 +23,7 @@ And you also need to enable `PyppeteerMiddleware` in `DOWNLOADER_MIDDLEWARES`:
 
 ```python
 DOWNLOADER_MIDDLEWARES = {
-    'gerapy_pyppeteer.downloadermiddlewares.py.PyppeteerMiddleware': 543,
+    'gerapy_pyppeteer.downloadermiddlewares.PyppeteerMiddleware': 543,
 }
 ```
 
