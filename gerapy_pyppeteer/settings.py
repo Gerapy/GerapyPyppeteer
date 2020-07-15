@@ -21,3 +21,9 @@ GERAPY_PYPPETEER_MUTE_AUDIO = True
 GERAPY_PYPPETEER_NO_SANDBOX = True
 GERAPY_PYPPETEER_DISABLE_SETUID_SANDBOX = True
 GERAPY_PYPPETEER_DISABLE_GPU = True
+
+# ignore resource types, ResourceType will be one of the following: ``document``,
+# ``stylesheet``, ``image``, ``media``, ``font``, ``script``,
+#  ``texttrack``, ``xhr``, ``fetch``, ``eventsource``, ``websocket``,
+#  ``manifest``, ``other``.
+GERAPY_IGNORE_RESOURCE_TYPES = []

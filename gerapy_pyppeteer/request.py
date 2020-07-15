@@ -6,8 +6,8 @@ class PyppeteerRequest(Request):
     Scrapy ``Request`` subclass providing additional arguments
     """
     
-    def __init__(self, url, callback=None, wait_until=None, wait_for=None, script=None, sleep=None, timeout=10,
-                 proxy=None, *args,
+    def __init__(self, url, callback=None, wait_until=None, wait_for=None, script=None, sleep=None, timeout=None,
+                 proxy=None, ignore_resource_types=None, *args,
                  **kwargs):
         """
         :param url: request url
@@ -26,5 +26,6 @@ class PyppeteerRequest(Request):
         self.sleep = sleep
         self.proxy = proxy
         self.timeout = timeout
+        self.ignore_resource_types = ignore_resource_types
         
         super().__init__(url, callback, *args, **kwargs)

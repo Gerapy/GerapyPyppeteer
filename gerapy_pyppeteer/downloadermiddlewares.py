@@ -1,7 +1,11 @@
 import sys
 import asyncio
+
+from pyppeteer.errors import PageError, TimeoutError
 from scrapy.http import HtmlResponse
 import twisted.internet
+from scrapy.utils.python import global_object_name
+from scrapy.utils.response import response_status_message
 from twisted.internet.asyncioreactor import AsyncioSelectorReactor
 from twisted.internet.defer import Deferred
 from gerapy_pyppeteer.request import PyppeteerRequest
@@ -32,6 +36,45 @@ class PyppeteerMiddleware(object):
     Downloader middleware handling the requests with Puppeteer
     """
     
+    def _retry(self, request, reason, spider):
+        """
+        get retry request
+        :param request:
+        :param reason:
+        :param spider:
+        :return:
+        """
+        if not self.retry_enabled:
+            return
+        
+        retries = request.meta.get('retry_times', 0) + 1
+        retry_times = self.max_retry_times
+        
+        if 'max_retry_times' in request.meta:
+            retry_times = request.meta['max_retry_times']
+        
+        stats = spider.crawler.stats
+        if retries <= retry_times:
+            logger.debug("Retrying %(request)s (failed %(retries)d times): %(reason)s",
+                         {'request': request, 'retries': retries, 'reason': reason},
+                         extra={'spider': spider})
+            retryreq = request.copy()
+            retryreq.meta['retry_times'] = retries
+            retryreq.dont_filter = True
+            retryreq.priority = request.priority + self.priority_adjust
+            
+            if isinstance(reason, Exception):
+                reason = global_object_name(reason.__class__)
+            
+            stats.inc_value('retry/count')
+            stats.inc_value('retry/reason_count/%s' % reason)
+            return retryreq
+        else:
+            stats.inc_value('retry/max_reached')
+            logger.error("Gave up retrying %(request)s (failed %(retries)d times): %(reason)s",
+                         {'request': request, 'retries': retries, 'reason': reason},
+                         extra={'spider': spider})
+    
     @classmethod
     def from_crawler(cls, crawler):
         """
@@ -61,6 +104,13 @@ class PyppeteerMiddleware(object):
         cls.disable_gpu = settings.get('GERAPY_PYPPETEER_DISABLE_GPU', GERAPY_PYPPETEER_DISABLE_GPU)
         cls.download_timeout = settings.get('GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT',
                                             settings.get('DOWNLOAD_TIMEOUT', GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT))
+        cls.ignore_resource_types = settings.get('GERAPY_IGNORE_RESOURCE_TYPES', GERAPY_IGNORE_RESOURCE_TYPES)
+        
+        cls.retry_enabled = settings.getbool('RETRY_ENABLED')
+        cls.max_retry_times = settings.getint('RETRY_TIMES')
+        cls.retry_http_codes = set(int(x) for x in settings.getlist('RETRY_HTTP_CODES'))
+        cls.priority_adjust = settings.getint('RETRY_PRIORITY_ADJUST')
+        
         return cls()
     
     async def _process_request(self, request: PyppeteerRequest, spider):
@@ -111,32 +161,55 @@ class PyppeteerMiddleware(object):
         await page.setRequestInterception(True)
         
         @page.on('request')
-        async def _handle_headers(pu_request):
+        async def _handle_interception(pu_request):
+            # handle headers
             overrides = {
                 'headers': {
                     k.decode(): ','.join(map(lambda v: v.decode(), v))
                     for k, v in request.headers.items()
                 }
             }
-            await pu_request.continue_(overrides=overrides)
+            # handle resource types
+            _ignore_resource_types = self.ignore_resource_types
+            if request.ignore_resource_types is not None:
+                _ignore_resource_types = request.ignore_resource_types
+            if pu_request.resourceType in _ignore_resource_types:
+                await pu_request.abort()
+            else:
+                await pu_request.continue_(overrides)
         
         timeout = self.download_timeout
         if request.timeout is not None:
             timeout = request.timeout
         
         logger.debug('crawling %s', request.url)
-        response = await page.goto(
-            request.url,
-            options={
+        
+        response = None
+        try:
+            options = {
                 'timeout': 1000 * timeout,
                 'waitUntil': request.wait_until
             }
-        )
+            logger.debug('request %s with options %s', request.url, options)
+            response = await page.goto(
+                request.url,
+                options=options
+            )
+        except (PageError, TimeoutError):
+            logger.error('error rendering url %s using pyppeteer', request.url)
+            await page.close()
+            await browser.close()
+            return self._retry(request, 504, spider)
         
         if request.wait_for:
-            logger.debug('waiting for %s finished', request.wait_for)
-            await page.waitFor(request.wait_for)
-            logger.debug('wait for %s finished', request.wait_for)
+            try:
+                logger.debug('waiting for %s finished', request.wait_for)
+                await page.waitFor(request.wait_for)
+            except TimeoutError:
+                logger.error('error waiting for %s of %s', request.wait_for, request.url)
+                await page.close()
+                await browser.close()
+                return self._retry(request, 504, spider)
         
         # evaluate script
         if request.script:
@@ -155,6 +228,9 @@ class PyppeteerMiddleware(object):
         logger.debug('close pyppeteer')
         await page.close()
         await browser.close()
+        
+        if not response:
+            logger.error('get null response by pyppeteer of url %s', request.url)
         
         # Necessary to bypass the compression middleware (?)
         response.headers.pop('content-encoding', None)
