@@ -36,6 +36,15 @@ web page which you configured the request as PyppeteerRequest.
 
 GerapyPyppeteer provides some optional settings.
 
+### Concurrency 
+
+You can directly use Scrapy's setting to set Concurrency of Pyppeteer,
+for example:
+
+```python
+CONCURRENT_REQUESTS = 3
+```
+
 ### Logging Level
 
 By default, Pyppeteer will log all the debug messages, so GerapyPyppeteer
@@ -75,7 +84,7 @@ GERAPY_PYPPETEER_WINDOW_WIDTH = 1400
 GERAPY_PYPPETEER_WINDOW_HEIGHT = 700
 ```
 
-default is 1400, 700
+Default is 1400, 700.
 
 ### Pyppeteer Args
 
@@ -128,7 +137,7 @@ All of the optional resource type list:
 * manifest: Manifest files
 * other: Other files
 
-## Settings for each Pyppeteer Request
+### Settings for each Pyppeteer Request
 
 `PyppeteerRequest` provide args which can override global settings above.
 
