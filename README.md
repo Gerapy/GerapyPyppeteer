@@ -27,21 +27,63 @@ DOWNLOADER_MIDDLEWARES = {
 }
 ```
 
-Others optional settings:
+Congratulate, you've finished the all of the required configuration.
+
+If you run the Spider again, Pyppeteer will be started to render every
+web page which you configured the request as PyppeteerRequest.
+
+## Settings
+
+GerapyPyppeteer provides some optional settings.
+
+### Logging Level
+
+By default, Pyppeteer will log all the debug messages, so GerapyPyppeteer
+configured the logging level of Pyppeteer to WARNING.
+
+If you want to see more logs from Pyppeteer, you can change the this setting: 
 
 ```python
-# pyppeteer logging level
-GERAPY_PYPPETEER_LOGGING_LEVEL = logging.WARNING
+import logging
+GERAPY_PYPPETEER_LOGGING_LEVEL = logging.DEBUG
+```
 
+### Download Timeout
+
+Pyppeteer may take some time to render the required web page, you can also change this setting, default is `30s`:
+
+```python
 # pyppeteer timeout
 GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT = 30
+```
 
-# pyppeteer browser window
+### Headless
+
+By default, Pyppeteer is running in `Headless` mode, you can also 
+change it to `False` as you need, default is `True`:
+
+```python
+GERAPY_PYPPETEER_HEADLESS = False 
+```
+
+### Window Size
+
+You can also set the width and height of Pyppeteer window:
+
+```python
 GERAPY_PYPPETEER_WINDOW_WIDTH = 1400
 GERAPY_PYPPETEER_WINDOW_HEIGHT = 700
+```
 
-# pyppeteer settings
-GERAPY_PYPPETEER_HEADLESS = True
+default is 1400, 700
+
+### Pyppeteer Args
+
+You can also change the args of Pyppeteer, such as `dumpio`, `devtools`, etc.
+
+Optional settings and their default values:
+
+```python
 GERAPY_PYPPETEER_DUMPIO = False
 GERAPY_PYPPETEER_DEVTOOLS = False
 GERAPY_PYPPETEER_EXECUTABLE_PATH = None
@@ -52,6 +94,71 @@ GERAPY_PYPPETEER_NO_SANDBOX = True
 GERAPY_PYPPETEER_DISABLE_SETUID_SANDBOX = True
 GERAPY_PYPPETEER_DISABLE_GPU = True
 ```
+
+### Disable loading of specific resource type
+
+You can disable the loading of specific resource type to
+decrease the loading time of web page. You can configure
+the disabled resource types using `GERAPY_IGNORE_RESOURCE_TYPES`:
+
+```python
+GERAPY_IGNORE_RESOURCE_TYPES = []
+```
+
+For example, if you want to disable the loading of css and javascript,
+you can set as below:
+
+```python
+GERAPY_IGNORE_RESOURCE_TYPES = ['stylesheet', 'script']
+```
+
+All of the optional resource type list:
+
+* document: the Original HTML document
+* stylesheet: CSS files
+* script: JavaScript files
+* image: Images
+* media: Media files such as audios or videos
+* font: Fonts files
+* texttrack: Text Track files
+* xhr: Ajax Requests
+* fetch: Fetch Requests
+* eventsource: Event Source
+* websocket: Websocket
+* manifest: Manifest files
+* other: Other files
+
+## Settings for each Pyppeteer Request
+
+`PyppeteerRequest` provide args which can override global settings above.
+
+* wait_until: one of "load", "domcontentloaded", "networkidle0", "networkidle2".
+                see https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.goto, default is `domcontentloaded`
+* wait_for: wait for some element to load
+* script: script to execute after page loaded
+* sleep: time to sleep after page loaded
+* ignore_resource_types: ignored resource types
+
+For example, you can configure PyppeteerRequest as:
+
+```python
+from gerapy_pyppeteer import PyppeteerRequest
+
+def parse(self, response):
+    yield PyppeteerRequest(url, 
+        callback=self.parse_detail,
+        wait_until='domcontentloaded',
+        wait_for='title',
+        script='() => { console.log(document) }',
+        sleep=2)
+```
+
+Then Pyppeteer will:
+* wait for document to load
+* wait for title to load
+* execute `console.log(document)` script
+* sleep for 2s
+* return the rendered web page content
 
 ## Example
 
