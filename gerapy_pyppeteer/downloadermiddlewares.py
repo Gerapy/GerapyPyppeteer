@@ -92,6 +92,13 @@ class PyppeteerMiddleware(object):
         cls.window_height = settings.get('GERAPY_PYPPETEER_WINDOW_HEIGHT', GERAPY_PYPPETEER_WINDOW_HEIGHT)
         cls.headless = settings.get('GERAPY_PYPPETEER_HEADLESS', GERAPY_PYPPETEER_HEADLESS)
         cls.dumpio = settings.get('GERAPY_PYPPETEER_DUMPIO', GERAPY_PYPPETEER_DUMPIO)
+        cls.ignore_https_errors = settings.get('GERAPY_PYPPETEER_IGNORE_HTTPS_ERRORS', GERAPY_PYPPETEER_IGNORE_HTTPS_ERRORS)
+        cls.slow_mo = settings.get('GERAPY_PYPPETEER_SLOW_MO', GERAPY_PYPPETEER_SLOW_MO)
+        cls.ignore_default_args = settings.get('GERAPY_PYPPETEER_IGNORE_DEFAULT_ARGS', GERAPY_PYPPETEER_IGNORE_DEFAULT_ARGS)
+        cls.handle_sigint = settings.get('GERAPY_PYPPETEER_HANDLE_SIGINT', GERAPY_PYPPETEER_HANDLE_SIGINT)
+        cls.handle_sigterm = settings.get('GERAPY_PYPPETEER_HANDLE_SIGTERM', GERAPY_PYPPETEER_HANDLE_SIGTERM)
+        cls.handle_sighup = settings.get('GERAPY_PYPPETEER_HANDLE_SIGHUP', GERAPY_PYPPETEER_HANDLE_SIGHUP)
+        cls.auto_close = settings.get('GERAPY_PYPPETEER_AUTO_CLOSE', GERAPY_PYPPETEER_AUTO_CLOSE)
         cls.devtools = settings.get('GERAPY_PYPPETEER_DEVTOOLS', GERAPY_PYPPETEER_DEVTOOLS)
         cls.executable_path = settings.get('GERAPY_PYPPETEER_EXECUTABLE_PATH', GERAPY_PYPPETEER_EXECUTABLE_PATH)
         cls.disable_extensions = settings.get('GERAPY_PYPPETEER_DISABLE_EXTENSIONS',
@@ -128,13 +135,34 @@ class PyppeteerMiddleware(object):
                 f'--window-size={self.window_width},{self.window_height}',
             ]
         }
-        if self.executable_path: options['executable_path'] = self.executable_path
-        if self.disable_extensions: options['args'].append('--disable-extensions')
-        if self.hide_scrollbars: options['args'].append('--hide-scrollbars')
-        if self.mute_audio: options['args'].append('--mute-audio')
-        if self.no_sandbox: options['args'].append('--no-sandbox')
-        if self.disable_setuid_sandbox: options['args'].append('--disable-setuid-sandbox')
-        if self.disable_gpu: options['args'].append('--disable-gpu')
+        if self.executable_path:
+            options['executable_path'] = self.executable_path
+        if self.ignore_https_errors:
+            options['ignoreHTTPSErrors'] = self.ignore_https_errors
+        if self.slow_mo:
+            options['slowMo'] = self.slow_mo
+        if self.ignore_default_args:
+            options['ignoreDefaultArgs'] = self.ignore_default_args
+        if self.handle_sigint:
+            options['handleSIGINT'] = self.handle_sigint
+        if self.handle_sigterm:
+            options['handleSIGTERM'] = self.handle_sigterm
+        if self.handle_sighup:
+            options['handleSIGHUP'] = self.handle_sighup
+        if self.auto_close:
+            options['autoClose'] = self.auto_close
+        if self.disable_extensions:
+            options['args'].append('--disable-extensions')
+        if self.hide_scrollbars:
+            options['args'].append('--hide-scrollbars')
+        if self.mute_audio:
+            options['args'].append('--mute-audio')
+        if self.no_sandbox:
+            options['args'].append('--no-sandbox')
+        if self.disable_setuid_sandbox:
+            options['args'].append('--disable-setuid-sandbox')
+        if self.disable_gpu:
+            options['args'].append('--disable-gpu')
         
         # set proxy
         proxy = request.proxy
