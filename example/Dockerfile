@@ -8,8 +8,7 @@ RUN apt-get update && \
   libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget && \
   rm -rf /var/lib/apt/lists/*
 
-RUN pip install -U pip && pip install pyppeteer
-RUN pyppeteer-install
+RUN pip install -U pip && pip install pyppeteer && pyppeteer-install
 
 WORKDIR /code
 COPY requirements.txt .
