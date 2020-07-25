@@ -1,5 +1,15 @@
 # Gerapy Auto Extractor Changelog
 
+## 0.0.6 (2020-07-25)
+
+### Features
+
+* Add meta info from PyppeteerRequest attributes
+
+### Bug Fixes
+
+* Skip validation of PyppeteerRequest
+
 ## 0.0.5 (2020-07-20)
 
 ### Features
