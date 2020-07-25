@@ -1,4 +1,4 @@
-# Gerapy Auto Extractor Changelog
+# Gerapy Pyppeteer Changelog
 
 ## 0.0.7 (2020-07-25)
 
