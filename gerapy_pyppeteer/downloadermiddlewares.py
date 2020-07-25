@@ -165,7 +165,8 @@ class PyppeteerMiddleware(object):
         
         # get pyppeteer meta
         pyppeteer_meta = request.meta.get('pyppeteer')
-        print('pyppeteer_meta', pyppeteer_meta)
+        logger.debug('pyppeteer_meta %s', pyppeteer_meta)
+        
         # set proxy
         proxy = pyppeteer_meta.get('proxy')
         if not proxy:

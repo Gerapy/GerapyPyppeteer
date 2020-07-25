@@ -21,16 +21,20 @@ class PyppeteerRequest(Request):
         :param args:
         :param kwargs:
         """
-        self.wait_until = wait_until or 'domcontentloaded'
-        self.wait_for = wait_for
-        self.script = script
-        self.sleep = sleep
-        self.proxy = proxy
-        self.timeout = timeout
-        self.ignore_resource_types = ignore_resource_types
-        
-        # use meta info to save above args
+        # use meta info to save args
         meta = copy.deepcopy(meta) or {}
+        pyppeteer_mata = meta.get('pyppeteer') or {}
+        
+        self.wait_until = pyppeteer_mata.get('wait_until') if pyppeteer_mata.get(
+            'wait_until') is not None else (wait_until or 'domcontentloaded')
+        self.wait_for = pyppeteer_mata.get('wait_for') if pyppeteer_mata.get('wait_for') is not None else wait_for
+        self.script = pyppeteer_mata.get('script') if pyppeteer_mata.get('script') is not None else script
+        self.sleep = pyppeteer_mata.get('sleep') if pyppeteer_mata.get('sleep') is not None else sleep
+        self.proxy = pyppeteer_mata.get('proxy') if pyppeteer_mata.get('proxy') is not None else proxy
+        self.timeout = pyppeteer_mata.get('timeout') if pyppeteer_mata.get('timeout') is not None else timeout
+        self.ignore_resource_types = pyppeteer_mata.get('ignore_resource_types') if pyppeteer_mata.get(
+            'ignore_resource_types') is not None else ignore_resource_types
+        
         pyppeteer_mata = meta.setdefault('pyppeteer', {})
         pyppeteer_mata['wait_until'] = self.wait_until
         pyppeteer_mata['wait_for'] = self.wait_for
