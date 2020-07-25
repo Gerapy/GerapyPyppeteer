@@ -1,4 +1,5 @@
 from scrapy import Request
+import copy
 
 
 class PyppeteerRequest(Request):
@@ -7,7 +8,7 @@ class PyppeteerRequest(Request):
     """
     
     def __init__(self, url, callback=None, wait_until=None, wait_for=None, script=None, sleep=None, timeout=None,
-                 proxy=None, ignore_resource_types=None, *args,
+                 proxy=None, ignore_resource_types=None, meta=None, *args,
                  **kwargs):
         """
         :param url: request url
@@ -28,4 +29,15 @@ class PyppeteerRequest(Request):
         self.timeout = timeout
         self.ignore_resource_types = ignore_resource_types
         
-        super().__init__(url, callback, *args, **kwargs)
+        # use meta info to save above args
+        meta = copy.deepcopy(meta) or {}
+        pyppeteer_mata = meta.setdefault('pyppeteer', {})
+        pyppeteer_mata['wait_until'] = self.wait_until
+        pyppeteer_mata['wait_for'] = self.wait_for
+        pyppeteer_mata['script'] = self.script
+        pyppeteer_mata['sleep'] = self.sleep
+        pyppeteer_mata['proxy'] = self.proxy
+        pyppeteer_mata['timeout'] = self.timeout
+        pyppeteer_mata['ignore_resource_types'] = self.ignore_resource_types
+        
+        super().__init__(url, callback, meta=meta, *args, **kwargs)

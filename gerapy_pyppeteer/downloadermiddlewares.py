@@ -1,14 +1,11 @@
 import sys
 import asyncio
-
 from pyppeteer.errors import PageError, TimeoutError
 from scrapy.http import HtmlResponse
 import twisted.internet
 from scrapy.utils.python import global_object_name
-from scrapy.utils.response import response_status_message
 from twisted.internet.asyncioreactor import AsyncioSelectorReactor
 from twisted.internet.defer import Deferred
-from gerapy_pyppeteer.request import PyppeteerRequest
 from pyppeteer import launch
 
 from gerapy_pyppeteer.settings import *
@@ -92,9 +89,11 @@ class PyppeteerMiddleware(object):
         cls.window_height = settings.get('GERAPY_PYPPETEER_WINDOW_HEIGHT', GERAPY_PYPPETEER_WINDOW_HEIGHT)
         cls.headless = settings.get('GERAPY_PYPPETEER_HEADLESS', GERAPY_PYPPETEER_HEADLESS)
         cls.dumpio = settings.get('GERAPY_PYPPETEER_DUMPIO', GERAPY_PYPPETEER_DUMPIO)
-        cls.ignore_https_errors = settings.get('GERAPY_PYPPETEER_IGNORE_HTTPS_ERRORS', GERAPY_PYPPETEER_IGNORE_HTTPS_ERRORS)
+        cls.ignore_https_errors = settings.get('GERAPY_PYPPETEER_IGNORE_HTTPS_ERRORS',
+                                               GERAPY_PYPPETEER_IGNORE_HTTPS_ERRORS)
         cls.slow_mo = settings.get('GERAPY_PYPPETEER_SLOW_MO', GERAPY_PYPPETEER_SLOW_MO)
-        cls.ignore_default_args = settings.get('GERAPY_PYPPETEER_IGNORE_DEFAULT_ARGS', GERAPY_PYPPETEER_IGNORE_DEFAULT_ARGS)
+        cls.ignore_default_args = settings.get('GERAPY_PYPPETEER_IGNORE_DEFAULT_ARGS',
+                                               GERAPY_PYPPETEER_IGNORE_DEFAULT_ARGS)
         cls.handle_sigint = settings.get('GERAPY_PYPPETEER_HANDLE_SIGINT', GERAPY_PYPPETEER_HANDLE_SIGINT)
         cls.handle_sigterm = settings.get('GERAPY_PYPPETEER_HANDLE_SIGTERM', GERAPY_PYPPETEER_HANDLE_SIGTERM)
         cls.handle_sighup = settings.get('GERAPY_PYPPETEER_HANDLE_SIGHUP', GERAPY_PYPPETEER_HANDLE_SIGHUP)
@@ -120,7 +119,7 @@ class PyppeteerMiddleware(object):
         
         return cls()
     
-    async def _process_request(self, request: PyppeteerRequest, spider):
+    async def _process_request(self, request, spider):
         """
         use pyppeteer to process spider
         :param request:
@@ -164,8 +163,11 @@ class PyppeteerMiddleware(object):
         if self.disable_gpu:
             options['args'].append('--disable-gpu')
         
+        # get pyppeteer meta
+        pyppeteer_meta = request.meta.get('pyppeteer')
+        print('pyppeteer_meta', pyppeteer_meta)
         # set proxy
-        proxy = request.proxy
+        proxy = pyppeteer_meta.get('proxy')
         if not proxy:
             proxy = request.meta.get('proxy')
         if proxy: options['args'].append(f'--proxy-server={proxy}')
@@ -199,24 +201,24 @@ class PyppeteerMiddleware(object):
             }
             # handle resource types
             _ignore_resource_types = self.ignore_resource_types
-            if request.ignore_resource_types is not None:
-                _ignore_resource_types = request.ignore_resource_types
+            if request.meta.get('pyppeteer', {}).get('ignore_resource_types') is not None:
+                _ignore_resource_types = request.meta.get('pyppeteer', {}).get('ignore_resource_types')
             if pu_request.resourceType in _ignore_resource_types:
                 await pu_request.abort()
             else:
                 await pu_request.continue_(overrides)
         
-        timeout = self.download_timeout
-        if request.timeout is not None:
-            timeout = request.timeout
+        _timeout = self.download_timeout
+        if pyppeteer_meta.get('timeout') is not None:
+            _timeout = pyppeteer_meta.get('timeout')
         
         logger.debug('crawling %s', request.url)
         
         response = None
         try:
             options = {
-                'timeout': 1000 * timeout,
-                'waitUntil': request.wait_until
+                'timeout': 1000 * _timeout,
+                'waitUntil': pyppeteer_meta.get('wait_until')
             }
             logger.debug('request %s with options %s', request.url, options)
             response = await page.goto(
@@ -229,25 +231,28 @@ class PyppeteerMiddleware(object):
             await browser.close()
             return self._retry(request, 504, spider)
         
-        if request.wait_for:
+        if pyppeteer_meta.get('wait_for'):
+            _wait_for = pyppeteer_meta.get('wait_for')
             try:
-                logger.debug('waiting for %s finished', request.wait_for)
-                await page.waitFor(request.wait_for)
+                logger.debug('waiting for %s finished', _wait_for)
+                await page.waitFor(_wait_for)
             except TimeoutError:
-                logger.error('error waiting for %s of %s', request.wait_for, request.url)
+                logger.error('error waiting for %s of %s', _wait_for, request.url)
                 await page.close()
                 await browser.close()
                 return self._retry(request, 504, spider)
         
         # evaluate script
-        if request.script:
-            logger.debug('evaluating %s', request.script)
-            await page.evaluate(request.script)
+        if pyppeteer_meta.get('script'):
+            _script = pyppeteer_meta.get('script')
+            logger.debug('evaluating %s', _script)
+            await page.evaluate(_script)
         
         # sleep
-        if request.sleep is not None:
-            logger.debug('sleep for %ss', request.sleep)
-            await asyncio.sleep(request.sleep)
+        if pyppeteer_meta.get('sleep') is not None:
+            _sleep = pyppeteer_meta.get('sleep')
+            logger.debug('sleep for %ss', _sleep)
+            await asyncio.sleep(_sleep)
         
         content = await page.content()
         body = str.encode(content)
@@ -281,11 +286,6 @@ class PyppeteerMiddleware(object):
         :return:
         """
         logger.debug('processing request %s', request)
-        
-        if not isinstance(request, PyppeteerRequest):
-            logger.info('request is not PyppeteerRequest, just return')
-            return None
-        
         return as_deferred(self._process_request(request, spider))
     
     async def _spider_closed(self):
