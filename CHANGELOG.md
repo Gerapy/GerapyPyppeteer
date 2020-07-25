@@ -1,6 +1,6 @@
 # Gerapy Auto Extractor Changelog
 
-## 0.0.6 (2020-07-25)
+## 0.0.7 (2020-07-25)
 
 ### Features
 
