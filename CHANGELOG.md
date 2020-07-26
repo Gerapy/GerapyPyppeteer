@@ -1,5 +1,16 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.0.8 (2020-07-26)
+
+### Features
+
+* Add support for pretending as real Browser instead of WebDriver
+
+### Bug Fixes
+
+* Fix bug of ValueError when `wait_until` is None
+* Fix error position of log message about `wait_for`
+
 ## 0.0.7 (2020-07-25)
 
 ### Features

@@ -45,6 +45,17 @@ for example:
 CONCURRENT_REQUESTS = 3
 ```
 
+### Pretend as Real Browser
+
+Some website will detect WebDriver or Headless, GerapyPyppeteer can 
+pretend Chromium by inject scripts. This is enabled by default.
+
+You can close it if website does not detect WebDriver to speed up:
+
+```python
+GERAPY_PYPPETEER_PRETEND = False
+```
+
 ### Logging Level
 
 By default, Pyppeteer will log all the debug messages, so GerapyPyppeteer
