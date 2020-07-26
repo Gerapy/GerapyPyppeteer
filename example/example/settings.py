@@ -21,7 +21,7 @@ NEWSPIDER_MODULE = 'example.spiders'
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 3
+CONCURRENT_REQUESTS = 1
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -90,6 +90,8 @@ DOWNLOADER_MIDDLEWARES = {
 
 RETRY_HTTP_CODES = [403, 500, 502, 503, 504]
 
-GERAPY_PYPPETEER_HEADLESS = True
+GERAPY_PYPPETEER_HEADLESS = False
 
 LOG_LEVEL = 'DEBUG'
+
+GERAPY_PYPPETEER_PRETEND = True

@@ -7,7 +7,7 @@ from scrapy.utils.python import global_object_name
 from twisted.internet.asyncioreactor import AsyncioSelectorReactor
 from twisted.internet.defer import Deferred
 from pyppeteer import launch
-
+from gerapy_pyppeteer.pretend import SCRIPTS as PRETEND_SCRIPTS
 from gerapy_pyppeteer.settings import *
 
 reactor = AsyncioSelectorReactor(asyncio.get_event_loop())
@@ -111,7 +111,7 @@ class PyppeteerMiddleware(object):
         cls.download_timeout = settings.get('GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT',
                                             settings.get('DOWNLOAD_TIMEOUT', GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT))
         cls.ignore_resource_types = settings.get('GERAPY_IGNORE_RESOURCE_TYPES', GERAPY_IGNORE_RESOURCE_TYPES)
-        
+        cls.pretend = settings.get('GERAPY_PYPPETEER_PRETEND', GERAPY_PYPPETEER_PRETEND)
         cls.retry_enabled = settings.getbool('RETRY_ENABLED')
         cls.max_retry_times = settings.getint('RETRY_TIMES')
         cls.retry_http_codes = set(int(x) for x in settings.getlist('RETRY_HTTP_CODES'))
@@ -134,6 +134,10 @@ class PyppeteerMiddleware(object):
                 f'--window-size={self.window_width},{self.window_height}',
             ]
         }
+        if self.pretend:
+            options['ignoreDefaultArgs'] = [
+                '--enable-automation'
+            ]
         if self.executable_path:
             options['executable_path'] = self.executable_path
         if self.ignore_https_errors:
@@ -164,7 +168,7 @@ class PyppeteerMiddleware(object):
             options['args'].append('--disable-gpu')
         
         # get pyppeteer meta
-        pyppeteer_meta = request.meta.get('pyppeteer')
+        pyppeteer_meta = request.meta.get('pyppeteer') or {}
         logger.debug('pyppeteer_meta %s', pyppeteer_meta)
         
         # set proxy
@@ -178,6 +182,10 @@ class PyppeteerMiddleware(object):
         browser = await launch(options)
         page = await browser.newPage()
         await page.setViewport({'width': self.window_width, 'height': self.window_height})
+        
+        if self.pretend:
+            for script in PRETEND_SCRIPTS:
+                await page.evaluateOnNewDocument(script)
         
         # set cookies
         if isinstance(request.cookies, dict):
@@ -218,9 +226,10 @@ class PyppeteerMiddleware(object):
         response = None
         try:
             options = {
-                'timeout': 1000 * _timeout,
-                'waitUntil': pyppeteer_meta.get('wait_until')
+                'timeout': 1000 * _timeout
             }
+            if pyppeteer_meta.get('wait_until'):
+                options['waitUntil'] = pyppeteer_meta.get('wait_until')
             logger.debug('request %s with options %s', request.url, options)
             response = await page.goto(
                 request.url,
@@ -235,8 +244,8 @@ class PyppeteerMiddleware(object):
         if pyppeteer_meta.get('wait_for'):
             _wait_for = pyppeteer_meta.get('wait_for')
             try:
-                logger.debug('waiting for %s finished', _wait_for)
                 await page.waitFor(_wait_for)
+                logger.debug('waiting for %s finished', _wait_for)
             except TimeoutError:
                 logger.error('error waiting for %s of %s', _wait_for, request.url)
                 await page.close()
