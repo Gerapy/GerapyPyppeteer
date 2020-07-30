@@ -293,34 +293,26 @@ Reason: pyppeter uses chromium by default, if not, download it automatically (fo
 
 Solution:
 
-1、 Modify the executable path of the driver browser to convert chromium to chrome
+1、 Modify download (image):Recommended, completed
 
 ```python
-# Example, take my own path to chrome
-executablePath = r'C:\Users\W\AppData\Local\Google\Chrome\Application\chrome.exe'
-     browser = await launch(
-         {'executablePath': executablePath,
-          'headless': False, 'slowMo': 30,
-          }
+# pyppeteer settings
+GERAPY_PYPPETEER_HEADLESS = True
+GERAPY_PYPPETEER_EXECUTABLE_PATH = None
+# Personal examples :
+# GERAPY_PYPPETEER_EXECUTABLE_PATH = r'C:\Users\W\AppData\Local\Google\Chrome\Application\chrome.exe'
+GERAPY_PYPPETEER_DOWNLOAD_HOST = 'http://npm.taobao.org/mirror'
 ```
 
+2、 Modify the **GERAPY_PYPPETEER_EXECUTABLE_PATH** path of the driver browser to convert chromium to chrome
+
+if you can not known, you can change in Pyppeteer
+
 ```python
-# Pyetepper/ launcher.py line 358
+# in Pyetepper/ launcher.py line 358
 # Modify chrome directly_ Executable(), and add chromium_ Change executable() to your own chrome path
 def executablePath() -> str:
     """Get executable path of default chromium."""
-    # return str(chromium_executable())
-example return str(chromium_executable())
-```
-
-2、 Modify download (image)
-
-```python
-Pyetepper/Chromium_downloader.py line 22
-
-# Default：
-DEFAULT_DOWNLOAD_HOST = 'https://storage.googleapis.com'
-# modify
-DEFAULT_DOWNLOAD_HOST = http://npm.taobao.org/mirror
+    # return str(yourself_executable())
 ```
 
