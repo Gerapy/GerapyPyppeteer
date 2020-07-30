@@ -274,3 +274,53 @@ Outputs:
 2020-07-13 01:49:27 [gerapy.pyppeteer] DEBUG: close pyppeteer
 ...
 ```
+
+## Trouble Shooting
+
+### To solve the problem of slow download speed or failure in downloading chromium from pyppeter
+
+Problem 1: downloading pyppeter is slow or failed
+
+Solution: Download with PIP image source
+
+```python
+pip install pyppeteer -i https://mirrors.aliyun.com/pypi/simple/
+```
+
+Problem 2: pyppeter failed to use
+
+Reason: pyppeter uses chromium by default, if not, download it automatically (foreign source)
+
+Solution:
+
+1、 Modify the executable path of the driver browser to convert chromium to chrome
+
+```python
+# Example, take my own path to chrome
+executablePath = r'C:\Users\W\AppData\Local\Google\Chrome\Application\chrome.exe'
+     browser = await launch(
+         {'executablePath': executablePath,
+          'headless': False, 'slowMo': 30,
+          }
+```
+
+```python
+# Pyetepper/ launcher.py line 358
+# Modify chrome directly_ Executable(), and add chromium_ Change executable() to your own chrome path
+def executablePath() -> str:
+    """Get executable path of default chromium."""
+    # return str(chromium_executable())
+example return str(chromium_executable())
+```
+
+2、 Modify download (image)
+
+```python
+Pyetepper/Chromium_downloader.py line 22
+
+# Default：
+DEFAULT_DOWNLOAD_HOST = 'https://storage.googleapis.com'
+# modify
+DEFAULT_DOWNLOAD_HOST = http://npm.taobao.org/mirror
+```
+

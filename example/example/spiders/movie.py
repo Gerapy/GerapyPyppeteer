@@ -13,7 +13,7 @@ class MovieSpider(scrapy.Spider):
     allowed_domains = ['antispider1.scrape.center']
     base_url = 'https://antispider1.scrape.center'
     max_page = 10
-    
+
     def start_requests(self):
         """
         first page
@@ -23,7 +23,7 @@ class MovieSpider(scrapy.Spider):
             url = f'{self.base_url}/page/{page}'
             logger.debug('start url %s', url)
             yield PyppeteerRequest(url, callback=self.parse_index, priority=10, wait_for='.item')
-    
+
     def parse_index(self, response):
         """
         extract movies
@@ -36,7 +36,7 @@ class MovieSpider(scrapy.Spider):
             detail_url = response.urljoin(href)
             logger.info('detail url %s', detail_url)
             yield PyppeteerRequest(detail_url, callback=self.parse_detail, wait_for='.item')
-    
+
     def parse_detail(self, response):
         """
         process detail info of book
