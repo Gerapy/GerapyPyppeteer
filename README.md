@@ -277,7 +277,7 @@ Outputs:
 
 ## Trouble Shooting
 
-### To solve the problem of slow download speed or failure in downloading chromium from pyppeter
+### Slow download speed of Pyppeteer
 
 Problem 1: downloading pyppeter is slow or failed
 

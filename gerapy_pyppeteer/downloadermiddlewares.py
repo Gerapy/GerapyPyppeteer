@@ -100,6 +100,7 @@ class PyppeteerMiddleware(object):
         cls.auto_close = settings.get('GERAPY_PYPPETEER_AUTO_CLOSE', GERAPY_PYPPETEER_AUTO_CLOSE)
         cls.devtools = settings.get('GERAPY_PYPPETEER_DEVTOOLS', GERAPY_PYPPETEER_DEVTOOLS)
         cls.executable_path = settings.get('GERAPY_PYPPETEER_EXECUTABLE_PATH', GERAPY_PYPPETEER_EXECUTABLE_PATH)
+        cls.download_host = settings.get('GERAPY_PYPPETEER_EXECUTABLE_PATH', GERAPY_PYPPETEER_DOWNLOAD_HOST)
         cls.disable_extensions = settings.get('GERAPY_PYPPETEER_DISABLE_EXTENSIONS',
                                               GERAPY_PYPPETEER_DISABLE_EXTENSIONS)
         cls.hide_scrollbars = settings.get('GERAPY_PYPPETEER_HIDE_SCROLLBARS', GERAPY_PYPPETEER_HIDE_SCROLLBARS)
@@ -140,6 +141,8 @@ class PyppeteerMiddleware(object):
             ]
         if self.executable_path:
             options['executable_path'] = self.executable_path
+        if self.download_host:
+            options['executable_path'] = self.download_host
         if self.ignore_https_errors:
             options['ignoreHTTPSErrors'] = self.ignore_https_errors
         if self.slow_mo:
