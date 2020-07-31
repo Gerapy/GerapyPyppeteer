@@ -32,7 +32,7 @@ class MovieSpider(scrapy.Spider):
         """
         items = response.css('.item')
         for item in items:
-            href = item.css('.name::attr(href)').extract_first()
+            href = item.css('a::attr(href)').extract_first()
             detail_url = response.urljoin(href)
             logger.info('detail url %s', detail_url)
             yield PyppeteerRequest(detail_url, callback=self.parse_detail, wait_for='.item')

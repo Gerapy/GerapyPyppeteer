@@ -284,6 +284,7 @@ class PyppeteerMiddleware(object):
         body = str.encode(content)
         
         # screenshot
+        # TODO: maybe add support for `enabled` sub attribute
         _screenshot = self.screenshot
         if pyppeteer_meta.get('screenshot') is not None:
             _screenshot = pyppeteer_meta.get('screenshot')
