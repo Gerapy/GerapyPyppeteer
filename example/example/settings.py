@@ -95,3 +95,10 @@ GERAPY_PYPPETEER_HEADLESS = False
 LOG_LEVEL = 'DEBUG'
 
 GERAPY_PYPPETEER_PRETEND = True
+
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+
+GERAPY_PYPPETEER_SCREENSHOT = {
+    'type': 'png',
+    'fullPage': True
+}

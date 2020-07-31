@@ -8,7 +8,7 @@ class PyppeteerRequest(Request):
     """
     
     def __init__(self, url, callback=None, wait_until=None, wait_for=None, script=None, sleep=None, timeout=None,
-                 proxy=None, ignore_resource_types=None, meta=None, *args,
+                 proxy=None, ignore_resource_types=None, meta=None, screenshot=None, *args,
                  **kwargs):
         """
         :param url: request url
@@ -18,6 +18,11 @@ class PyppeteerRequest(Request):
         :param wait_for: wait for some element to load
         :param script: script to execute
         :param sleep: time to sleep after loaded
+        :param timeout: load timeout
+        :param proxy: use proxy to request
+        :param ignore_resource_types: ignored resource types
+        :param screenshot: ignored resource types, see
+                https://miyakogi.github.io/pyppeteer/_modules/pyppeteer/page.html#Page.screenshot
         :param args:
         :param kwargs:
         """
@@ -34,7 +39,7 @@ class PyppeteerRequest(Request):
         self.timeout = pyppeteer_mata.get('timeout') if pyppeteer_mata.get('timeout') is not None else timeout
         self.ignore_resource_types = pyppeteer_mata.get('ignore_resource_types') if pyppeteer_mata.get(
             'ignore_resource_types') is not None else ignore_resource_types
-        
+        self.screenshot = pyppeteer_mata.get('screenshot') if pyppeteer_mata.get('screenshot') is not None else screenshot
         pyppeteer_mata = meta.setdefault('pyppeteer', {})
         pyppeteer_mata['wait_until'] = self.wait_until
         pyppeteer_mata['wait_for'] = self.wait_for
@@ -42,6 +47,7 @@ class PyppeteerRequest(Request):
         pyppeteer_mata['sleep'] = self.sleep
         pyppeteer_mata['proxy'] = self.proxy
         pyppeteer_mata['timeout'] = self.timeout
+        pyppeteer_mata['screenshot'] = self.screenshot
         pyppeteer_mata['ignore_resource_types'] = self.ignore_resource_types
         
         super().__init__(url, callback, meta=meta, *args, **kwargs)

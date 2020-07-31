@@ -1,5 +1,7 @@
 import sys
 import asyncio
+from io import BytesIO
+
 from pyppeteer.errors import PageError, TimeoutError
 from scrapy.http import HtmlResponse
 import twisted.internet
@@ -110,8 +112,11 @@ class PyppeteerMiddleware(object):
         cls.disable_gpu = settings.get('GERAPY_PYPPETEER_DISABLE_GPU', GERAPY_PYPPETEER_DISABLE_GPU)
         cls.download_timeout = settings.get('GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT',
                                             settings.get('DOWNLOAD_TIMEOUT', GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT))
-        cls.ignore_resource_types = settings.get('GERAPY_IGNORE_RESOURCE_TYPES', GERAPY_IGNORE_RESOURCE_TYPES)
+        cls.ignore_resource_types = settings.get('GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES',
+                                                 GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES)
+        cls.screenshot = settings.get('GERAPY_PYPPETEER_SCREENSHOT', GERAPY_PYPPETEER_SCREENSHOT)
         cls.pretend = settings.get('GERAPY_PYPPETEER_PRETEND', GERAPY_PYPPETEER_PRETEND)
+        cls.sleep = settings.get('GERAPY_PYPPETEER_SLEEP', GERAPY_PYPPETEER_SLEEP)
         cls.retry_enabled = settings.getbool('RETRY_ENABLED')
         cls.max_retry_times = settings.getint('RETRY_TIMES')
         cls.retry_http_codes = set(int(x) for x in settings.getlist('RETRY_HTTP_CODES'))
@@ -259,13 +264,29 @@ class PyppeteerMiddleware(object):
             await page.evaluate(_script)
         
         # sleep
+        _sleep = self.sleep
         if pyppeteer_meta.get('sleep') is not None:
             _sleep = pyppeteer_meta.get('sleep')
+        if _sleep is not None:
             logger.debug('sleep for %ss', _sleep)
             await asyncio.sleep(_sleep)
         
         content = await page.content()
         body = str.encode(content)
+        
+        # screenshot
+        _screenshot = self.screenshot
+        if pyppeteer_meta.get('screenshot') is not None:
+            _screenshot = pyppeteer_meta.get('screenshot')
+            logger.debug('taking screenshot using args %s', _screenshot)
+        screenshot = None
+        if _screenshot:
+            # pop path to not save img directly in this middleware
+            if isinstance(_screenshot, dict) and 'path' in _screenshot.keys():
+                _screenshot.pop('path')
+            screenshot = await page.screenshot(_screenshot)
+            if isinstance(screenshot, bytes):
+                screenshot = BytesIO(screenshot)
         
         # close page and browser
         logger.debug('close pyppeteer')
@@ -279,7 +300,7 @@ class PyppeteerMiddleware(object):
         response.headers.pop('content-encoding', None)
         response.headers.pop('Content-Encoding', None)
         
-        return HtmlResponse(
+        response = HtmlResponse(
             page.url,
             status=response.status,
             headers=response.headers,
@@ -287,6 +308,9 @@ class PyppeteerMiddleware(object):
             encoding='utf-8',
             request=request
         )
+        if screenshot:
+            response.meta['screenshot'] = screenshot
+        return response
     
     def process_request(self, request, spider):
         """

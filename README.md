@@ -119,17 +119,17 @@ GERAPY_PYPPETEER_DISABLE_GPU = True
 
 You can disable the loading of specific resource type to
 decrease the loading time of web page. You can configure
-the disabled resource types using `GERAPY_IGNORE_RESOURCE_TYPES`:
+the disabled resource types using `GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES`:
 
 ```python
-GERAPY_IGNORE_RESOURCE_TYPES = []
+GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES = []
 ```
 
 For example, if you want to disable the loading of css and javascript,
 you can set as below:
 
 ```python
-GERAPY_IGNORE_RESOURCE_TYPES = ['stylesheet', 'script']
+GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES = ['stylesheet', 'script']
 ```
 
 All of the optional resource type list:
@@ -147,6 +147,51 @@ All of the optional resource type list:
 * websocket: Websocket
 * manifest: Manifest files
 * other: Other files
+
+### Screenshot
+
+You can get screenshot of loaded page, you can pass `screenshot` args to `PyppeteerRequest` as dict:
+
+- `type` (str): Specify screenshot type, can be either `jpeg` or `png`. Defaults to `png`.
+- `quality` (int): The quality of the image, between 0-100. Not applicable to `png` image.
+- `fullPage` (bool): When true, take a screenshot of the full scrollable page. Defaults to `False`.
+- `clip`  (dict): An object which specifies clipping region of the page. This option should have the following fields:
+  - `x` (int): x-coordinate of top-left corner of clip area.
+  - `y` (int): y-coordinate of top-left corner of clip area.
+  - `width` (int): width of clipping area.
+  - `height` (int): height of clipping area.
+- `omitBackground` (bool): Hide default white background and allow capturing screenshot with transparency.
+- `encoding` (str): The encoding of the image, can be either `base64` or `binary`. Defaults to `binary`. If binary it will return `BytesIO` object.
+
+For example:
+
+```python
+yield PyppeteerRequest(start_url, callback=self.parse_index, wait_for='.item .name', screenshot={
+            'type': 'png',
+            'fullPage': True
+        })
+```
+
+then you can get screenshot result in `response.meta['screenshot']`:
+
+Simplest save it to file:
+
+```python
+def parse_index(self, response):
+    with open('screenshot.png', 'wb') as f:
+        f.write(response.meta['screenshot'].getbuffer())
+```
+
+If you want to enable screenshot for all requests, you can configure it by `GERAPY_PYPPETEER_SCREENSHOT`.
+
+For example:
+
+```python
+GERAPY_PYPPETEER_SCREENSHOT = {
+    'type': 'png',
+    'fullPage': True
+}
+```
 
 ### Settings for each Pyppeteer Request
 
