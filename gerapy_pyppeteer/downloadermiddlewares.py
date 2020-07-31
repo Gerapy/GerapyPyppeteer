@@ -177,10 +177,11 @@ class PyppeteerMiddleware(object):
         logger.debug('pyppeteer_meta %s', pyppeteer_meta)
         
         # set proxy
-        proxy = pyppeteer_meta.get('proxy')
-        if not proxy:
-            proxy = request.meta.get('proxy')
-        if proxy: options['args'].append(f'--proxy-server={proxy}')
+        _proxy = request.meta.get('proxy')
+        if pyppeteer_meta.get('proxy') is not None:
+            _proxy = pyppeteer_meta.get('proxy')
+        if _proxy:
+            options['args'].append(f'--proxy-server={_proxy}')
         
         logger.debug('set options %s', options)
         
@@ -188,7 +189,11 @@ class PyppeteerMiddleware(object):
         page = await browser.newPage()
         await page.setViewport({'width': self.window_width, 'height': self.window_height})
         
-        if self.pretend:
+        # pretend as normal browser
+        _pretend = self.pretend
+        if pyppeteer_meta.get('pretend') is not None:
+            _pretend = pyppeteer_meta.get('pretend')
+        if _pretend:
             for script in PRETEND_SCRIPTS:
                 await page.evaluateOnNewDocument(script)
         
@@ -246,6 +251,7 @@ class PyppeteerMiddleware(object):
             await browser.close()
             return self._retry(request, 504, spider)
         
+        # wait for dom loaded
         if pyppeteer_meta.get('wait_for'):
             _wait_for = pyppeteer_meta.get('wait_for')
             try:

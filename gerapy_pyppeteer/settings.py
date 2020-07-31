@@ -36,6 +36,5 @@ GERAPY_PYPPETEER_DISABLE_GPU = True
 #  ``texttrack``, ``xhr``, ``fetch``, ``eventsource``, ``websocket``,
 #  ``manifest``, ``other``.
 GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES = []
-
 GERAPY_PYPPETEER_SCREENSHOT = None
 GERAPY_PYPPETEER_SLEEP = 1
