@@ -13,9 +13,9 @@ class PyppeteerRequest(Request):
         """
         :param url: request url
         :param callback: callback
-        :param wait_until: one of "load", "domcontentloaded", "networkidle0", "networkidle2".
-                see https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.goto
-        :param wait_for: wait for some element to load
+        :param one of "load", "domcontentloaded", "networkidle0", "networkidle2".
+                see https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.goto, default is `domcontentloaded`
+        :param wait_for: wait for some element to load, also supports dict
         :param script: script to execute
         :param proxy: use proxy for this time, like `http://x.x.x.x:x`
         :param sleep: time to sleep after loaded, override `GERAPY_PYPPETEER_SLEEP`

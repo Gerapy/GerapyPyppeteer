@@ -56,6 +56,9 @@ You can close it if website does not detect WebDriver to speed up:
 GERAPY_PYPPETEER_PRETEND = False
 ```
 
+Also you can use `pretend` attribute in `PyppeteerRequest` to overwrite this 
+configuration.
+
 ### Logging Level
 
 By default, Pyppeteer will log all the debug messages, so GerapyPyppeteer
@@ -193,16 +196,24 @@ GERAPY_PYPPETEER_SCREENSHOT = {
 }
 ```
 
-### Settings for each Pyppeteer Request
+## PyppeteerRequest
 
 `PyppeteerRequest` provide args which can override global settings above.
 
-* wait_until: one of "load", "domcontentloaded", "networkidle0", "networkidle2".
-                see https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.goto, default is `domcontentloaded`
-* wait_for: wait for some element to load
-* script: script to execute after page loaded
-* sleep: time to sleep after page loaded
-* ignore_resource_types: ignored resource types
+* url: request url
+* callback: callback
+* one of "load", "domcontentloaded", "networkidle0", "networkidle2".
+        see https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.goto, default is `domcontentloaded`
+* wait_for: wait for some element to load, also supports dict
+* script: script to execute
+* proxy: use proxy for this time, like `http://x.x.x.x:x`
+* sleep: time to sleep after loaded, override `GERAPY_PYPPETEER_SLEEP`
+* timeout: load timeout, override `GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT`
+* ignore_resource_types: ignored resource types, override `GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES`
+* pretend: pretend as normal browser, override `GERAPY_PYPPETEER_PRETEND`
+* screenshot: ignored resource types, see
+        https://miyakogi.github.io/pyppeteer/_modules/pyppeteer/page.html#Page.screenshot,
+        override `GERAPY_PYPPETEER_SCREENSHOT`
 
 For example, you can configure PyppeteerRequest as:
 
