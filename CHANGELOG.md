@@ -1,5 +1,15 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.0.9 (2020-07-31)
+
+### Features
+
+* Add support for screenshot
+
+### Bug Fixes
+
+* Fix bug of name `GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES`
+
 ## 0.0.8 (2020-07-26)
 
 ### Features
