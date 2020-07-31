@@ -6,7 +6,8 @@
 
 * Change the priority of `request.meta.get('proxy')` and `pyppeteer_meta.get('proxy')`
 * Add `pretend` attribute for `PyppeteerRequest`, which can override `GERAPY_PYPPETEER_PRETEND`
- 
+* Add support for `dict` format of `wait_for` attribute of `PyppeteerRequest`
+
 ## 0.0.9 (2020-07-31)
 
 ### Features

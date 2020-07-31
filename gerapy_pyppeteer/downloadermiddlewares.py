@@ -255,8 +255,11 @@ class PyppeteerMiddleware(object):
         if pyppeteer_meta.get('wait_for'):
             _wait_for = pyppeteer_meta.get('wait_for')
             try:
-                await page.waitFor(_wait_for)
-                logger.debug('waiting for %s finished', _wait_for)
+                logger.debug('waiting for %s', _wait_for)
+                if isinstance(_wait_for, dict):
+                    await page.waitFor(**_wait_for)
+                else:
+                    await page.waitFor(_wait_for)
             except TimeoutError:
                 logger.error('error waiting for %s of %s', _wait_for, request.url)
                 await page.close()
