@@ -28,11 +28,6 @@ class BookSpider(scrapy.Spider):
         :param response:
         :return:
         """
-        print('response', response.meta)
-        
-        with open('a.png', 'wb') as f:
-            f.write(response.meta['screenshot'].getbuffer())
-        
         items = response.css('.item')
         for item in items:
             href = item.css('.top a::attr(href)').extract_first()

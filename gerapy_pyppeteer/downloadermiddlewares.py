@@ -278,12 +278,12 @@ class PyppeteerMiddleware(object):
         _screenshot = self.screenshot
         if pyppeteer_meta.get('screenshot') is not None:
             _screenshot = pyppeteer_meta.get('screenshot')
-            logger.debug('taking screenshot using args %s', _screenshot)
         screenshot = None
         if _screenshot:
             # pop path to not save img directly in this middleware
             if isinstance(_screenshot, dict) and 'path' in _screenshot.keys():
                 _screenshot.pop('path')
+            logger.debug('taking screenshot using args %s', _screenshot)
             screenshot = await page.screenshot(_screenshot)
             if isinstance(screenshot, bytes):
                 screenshot = BytesIO(screenshot)
