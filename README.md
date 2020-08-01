@@ -274,3 +274,40 @@ Outputs:
 2020-07-13 01:49:27 [gerapy.pyppeteer] DEBUG: close pyppeteer
 ...
 ```
+
+## Trouble Shooting
+
+### Pyppeteer does not start properly
+
+Chromium download speed is too slow, it can not be used normally.
+
+Here are two solutions:
+
+#### Solution 1 (Recommended)
+
+Modify drive download source at `pyppeteer/chromium_downloader.py` line 22:
+
+```python
+# Default：
+DEFAULT_DOWNLOAD_HOST = 'https://storage.googleapis.com'
+# modify
+DEFAULT_DOWNLOAD_HOST = http://npm.taobao.org/mirror
+```
+
+#### Solution 2
+
+Modify drive execution path at `pyppeteer/chromium_downloader.py` line 45:
+
+```python
+# Default：
+chromiumExecutable = {
+    'linux': DOWNLOADS_FOLDER / REVISION / 'chrome-linux' / 'chrome',
+    'mac': (DOWNLOADS_FOLDER / REVISION / 'chrome-mac' / 'Chromium.app' /
+            'Contents' / 'MacOS' / 'Chromium'),
+    'win32': DOWNLOADS_FOLDER / REVISION / windowsArchive / 'chrome.exe',
+    'win64': DOWNLOADS_FOLDER / REVISION / windowsArchive / 'chrome.exe',
+}
+```
+
+You can find your own operating system, modify your chrome or chrome executable path.
+
