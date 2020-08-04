@@ -1,7 +1,6 @@
 import sys
 import asyncio
 from io import BytesIO
-
 from pyppeteer.errors import PageError, TimeoutError
 from scrapy.http import HtmlResponse
 import twisted.internet
@@ -11,6 +10,10 @@ from twisted.internet.defer import Deferred
 from pyppeteer import launch
 from gerapy_pyppeteer.pretend import SCRIPTS as PRETEND_SCRIPTS
 from gerapy_pyppeteer.settings import *
+import urllib.parse
+
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 reactor = AsyncioSelectorReactor(asyncio.get_event_loop())
 
@@ -117,6 +120,8 @@ class PyppeteerMiddleware(object):
         cls.screenshot = settings.get('GERAPY_PYPPETEER_SCREENSHOT', GERAPY_PYPPETEER_SCREENSHOT)
         cls.pretend = settings.get('GERAPY_PYPPETEER_PRETEND', GERAPY_PYPPETEER_PRETEND)
         cls.sleep = settings.get('GERAPY_PYPPETEER_SLEEP', GERAPY_PYPPETEER_SLEEP)
+        cls.enable_request_interception = settings.getbool('GERAPY_ENABLE_REQUEST_INTERCEPTION',
+                                                           GERAPY_ENABLE_REQUEST_INTERCEPTION)
         cls.retry_enabled = settings.getbool('RETRY_ENABLED')
         cls.max_retry_times = settings.getint('RETRY_TIMES')
         cls.retry_http_codes = set(int(x) for x in settings.getlist('RETRY_HTTP_CODES'))
@@ -198,16 +203,20 @@ class PyppeteerMiddleware(object):
                 await page.evaluateOnNewDocument(script)
         
         # set cookies
+        parse_result = urllib.parse.urlsplit(request.url)
+        domain = parse_result.hostname
+        _cookies = []
         if isinstance(request.cookies, dict):
-            await page.setCookie(*[
-                {'name': k, 'value': v}
-                for k, v in request.cookies.items()
-            ])
+            _cookies = [{'name': k, 'value': v, 'domain': domain}
+                        for k, v in request.cookies.items()]
         else:
-            await page.setCookie(request.cookies)
+            for _cookie in _cookies:
+                if isinstance(_cookie, dict) and 'domain' not in _cookie.keys():
+                    _cookie['domain'] = domain
+        await page.setCookie(*_cookies)
         
         # the headers must be set using request interception
-        await page.setRequestInterception(True)
+        await page.setRequestInterception(self.enable_request_interception)
         
         @page.on('request')
         async def _handle_interception(pu_request):

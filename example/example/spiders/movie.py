@@ -22,7 +22,10 @@ class MovieSpider(scrapy.Spider):
         for page in range(1, self.max_page + 1):
             url = f'{self.base_url}/page/{page}'
             logger.debug('start url %s', url)
-            yield PyppeteerRequest(url, callback=self.parse_index, priority=10, wait_for='.item', pretend=True)
+            cookies = {
+                'name': 'germey'
+            }
+            yield PyppeteerRequest(url, callback=self.parse_index, priority=10, wait_for='.item', pretend=True, cookies=cookies)
     
     def parse_index(self, response):
         """

@@ -1,5 +1,16 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.0.11 (2020-08-05)
+
+### Bug Fixes
+
+* Fix bug about `asyncio` in Python 3.8 on Windows [https://github.com/Gerapy/GerapyPyppeteer/issues/5](https://github.com/Gerapy/GerapyPyppeteer/issues/5)
+* Fix bug of setting cookies [https://github.com/Gerapy/GerapyPyppeteer/issues/11](https://github.com/Gerapy/GerapyPyppeteer/issues/11)
+
+### Features
+
+* Add settings of `GERAPY_ENABLE_REQUEST_INTERCEPTION` [https://github.com/Gerapy/GerapyPyppeteer/issues/6](https://github.com/Gerapy/GerapyPyppeteer/issues/6)
+
 ## 0.0.10 (2020-08-01)
 
 ### Features
