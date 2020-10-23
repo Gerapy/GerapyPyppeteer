@@ -4,7 +4,7 @@
 
 ### Bug Fixes
 
-* Fix bug about crawling with Pyppeteer of Request
+* Fix bug about crawling with Pyppeteer of normal Request
 
 ## 0.0.11 (2020-08-05)
 
