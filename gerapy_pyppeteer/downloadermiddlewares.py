@@ -37,7 +37,7 @@ class PyppeteerMiddleware(object):
     """
     Downloader middleware handling the requests with Puppeteer
     """
-    
+
     def _retry(self, request, reason, spider):
         """
         get retry request
@@ -48,13 +48,13 @@ class PyppeteerMiddleware(object):
         """
         if not self.retry_enabled:
             return
-        
+
         retries = request.meta.get('retry_times', 0) + 1
         retry_times = self.max_retry_times
-        
+
         if 'max_retry_times' in request.meta:
             retry_times = request.meta['max_retry_times']
-        
+
         stats = spider.crawler.stats
         if retries <= retry_times:
             logger.debug("Retrying %(request)s (failed %(retries)d times): %(reason)s",
@@ -64,10 +64,10 @@ class PyppeteerMiddleware(object):
             retryreq.meta['retry_times'] = retries
             retryreq.dont_filter = True
             retryreq.priority = request.priority + self.priority_adjust
-            
+
             if isinstance(reason, Exception):
                 reason = global_object_name(reason.__class__)
-            
+
             stats.inc_value('retry/count')
             stats.inc_value('retry/reason_count/%s' % reason)
             return retryreq
@@ -76,7 +76,7 @@ class PyppeteerMiddleware(object):
             logger.error("Gave up retrying %(request)s (failed %(retries)d times): %(reason)s",
                          {'request': request, 'retries': retries, 'reason': reason},
                          extra={'spider': spider})
-    
+
     @classmethod
     def from_crawler(cls, crawler):
         """
@@ -88,7 +88,7 @@ class PyppeteerMiddleware(object):
         logging_level = settings.get('GERAPY_PYPPETEER_LOGGING_LEVEL', GERAPY_PYPPETEER_LOGGING_LEVEL)
         logging.getLogger('websockets').setLevel(logging_level)
         logging.getLogger('pyppeteer').setLevel(logging_level)
-        
+
         # init settings
         cls.window_width = settings.get('GERAPY_PYPPETEER_WINDOW_WIDTH', GERAPY_PYPPETEER_WINDOW_WIDTH)
         cls.window_height = settings.get('GERAPY_PYPPETEER_WINDOW_HEIGHT', GERAPY_PYPPETEER_WINDOW_HEIGHT)
@@ -126,9 +126,9 @@ class PyppeteerMiddleware(object):
         cls.max_retry_times = settings.getint('RETRY_TIMES')
         cls.retry_http_codes = set(int(x) for x in settings.getlist('RETRY_HTTP_CODES'))
         cls.priority_adjust = settings.getint('RETRY_PRIORITY_ADJUST')
-        
+
         return cls()
-    
+
     async def _process_request(self, request, spider):
         """
         use pyppeteer to process spider
@@ -176,24 +176,26 @@ class PyppeteerMiddleware(object):
             options['args'].append('--disable-setuid-sandbox')
         if self.disable_gpu:
             options['args'].append('--disable-gpu')
-        
+
         # get pyppeteer meta
         pyppeteer_meta = request.meta.get('pyppeteer') or {}
         logger.debug('pyppeteer_meta %s', pyppeteer_meta)
-        
+        if not isinstance(pyppeteer_meta, dict) or len(pyppeteer_meta.keys()) == 0:
+            return
+
         # set proxy
         _proxy = request.meta.get('proxy')
         if pyppeteer_meta.get('proxy') is not None:
             _proxy = pyppeteer_meta.get('proxy')
         if _proxy:
             options['args'].append(f'--proxy-server={_proxy}')
-        
+
         logger.debug('set options %s', options)
-        
+
         browser = await launch(options)
         page = await browser.newPage()
         await page.setViewport({'width': self.window_width, 'height': self.window_height})
-        
+
         # pretend as normal browser
         _pretend = self.pretend
         if pyppeteer_meta.get('pretend') is not None:
@@ -201,7 +203,7 @@ class PyppeteerMiddleware(object):
         if _pretend:
             for script in PRETEND_SCRIPTS:
                 await page.evaluateOnNewDocument(script)
-        
+
         # set cookies
         parse_result = urllib.parse.urlsplit(request.url)
         domain = parse_result.hostname
@@ -214,10 +216,10 @@ class PyppeteerMiddleware(object):
                 if isinstance(_cookie, dict) and 'domain' not in _cookie.keys():
                     _cookie['domain'] = domain
         await page.setCookie(*_cookies)
-        
+
         # the headers must be set using request interception
         await page.setRequestInterception(self.enable_request_interception)
-        
+
         @page.on('request')
         async def _handle_interception(pu_request):
             # handle headers
@@ -235,13 +237,13 @@ class PyppeteerMiddleware(object):
                 await pu_request.abort()
             else:
                 await pu_request.continue_(overrides)
-        
+
         _timeout = self.download_timeout
         if pyppeteer_meta.get('timeout') is not None:
             _timeout = pyppeteer_meta.get('timeout')
-        
+
         logger.debug('crawling %s', request.url)
-        
+
         response = None
         try:
             options = {
@@ -259,7 +261,7 @@ class PyppeteerMiddleware(object):
             await page.close()
             await browser.close()
             return self._retry(request, 504, spider)
-        
+
         # wait for dom loaded
         if pyppeteer_meta.get('wait_for'):
             _wait_for = pyppeteer_meta.get('wait_for')
@@ -274,13 +276,13 @@ class PyppeteerMiddleware(object):
                 await page.close()
                 await browser.close()
                 return self._retry(request, 504, spider)
-        
+
         # evaluate script
         if pyppeteer_meta.get('script'):
             _script = pyppeteer_meta.get('script')
             logger.debug('evaluating %s', _script)
             await page.evaluate(_script)
-        
+
         # sleep
         _sleep = self.sleep
         if pyppeteer_meta.get('sleep') is not None:
@@ -288,10 +290,10 @@ class PyppeteerMiddleware(object):
         if _sleep is not None:
             logger.debug('sleep for %ss', _sleep)
             await asyncio.sleep(_sleep)
-        
+
         content = await page.content()
         body = str.encode(content)
-        
+
         # screenshot
         # TODO: maybe add support for `enabled` sub attribute
         _screenshot = self.screenshot
@@ -306,19 +308,19 @@ class PyppeteerMiddleware(object):
             screenshot = await page.screenshot(_screenshot)
             if isinstance(screenshot, bytes):
                 screenshot = BytesIO(screenshot)
-        
+
         # close page and browser
         logger.debug('close pyppeteer')
         await page.close()
         await browser.close()
-        
+
         if not response:
             logger.error('get null response by pyppeteer of url %s', request.url)
-        
+
         # Necessary to bypass the compression middleware (?)
         response.headers.pop('content-encoding', None)
         response.headers.pop('Content-Encoding', None)
-        
+
         response = HtmlResponse(
             page.url,
             status=response.status,
@@ -330,7 +332,7 @@ class PyppeteerMiddleware(object):
         if screenshot:
             response.meta['screenshot'] = screenshot
         return response
-    
+
     def process_request(self, request, spider):
         """
         process request using pyppeteer
@@ -340,10 +342,10 @@ class PyppeteerMiddleware(object):
         """
         logger.debug('processing request %s', request)
         return as_deferred(self._process_request(request, spider))
-    
+
     async def _spider_closed(self):
         pass
-    
+
     def spider_closed(self):
         """
         callback when spider closed

@@ -1,5 +1,11 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.0.12 (2020-10-24)
+
+### Bug Fixes
+
+* Fix bug about crawling with Pyppeteer of Request
+
 ## 0.0.11 (2020-08-05)
 
 ### Bug Fixes
