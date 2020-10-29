@@ -1,5 +1,11 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.0.12 (2020-10-30)
+
+### Bug Fixes
+
+* Fix bug about executablePath arg name
+
 ## 0.0.12 (2020-10-24)
 
 ### Bug Fixes
