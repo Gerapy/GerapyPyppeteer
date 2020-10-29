@@ -149,7 +149,7 @@ class PyppeteerMiddleware(object):
                 '--enable-automation'
             ]
         if self.executable_path:
-            options['executable_path'] = self.executable_path
+            options['executablePath'] = self.executable_path
         if self.ignore_https_errors:
             options['ignoreHTTPSErrors'] = self.ignore_https_errors
         if self.slow_mo:
