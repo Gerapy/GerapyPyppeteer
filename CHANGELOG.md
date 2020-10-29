@@ -1,6 +1,6 @@
 # Gerapy Pyppeteer Changelog
 
-## 0.0.12 (2020-10-30)
+## 0.0.13 (2020-10-30)
 
 ### Bug Fixes
 
