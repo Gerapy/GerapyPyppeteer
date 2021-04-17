@@ -225,23 +225,24 @@ class PyppeteerMiddleware(object):
         # the headers must be set using request interception
         await page.setRequestInterception(self.enable_request_interception)
 
-        @page.on('request')
-        async def _handle_interception(pu_request):
-            # handle headers
-            overrides = {
-                'headers': {
-                    k.decode(): ','.join(map(lambda v: v.decode(), v))
-                    for k, v in request.headers.items()
+        if self.enable_request_interception:
+            @page.on('request')
+            async def _handle_interception(pu_request):
+                # handle headers
+                overrides = {
+                    'headers': {
+                        k.decode(): ','.join(map(lambda v: v.decode(), v))
+                        for k, v in pu_request.headers.items()
+                    }
                 }
-            }
-            # handle resource types
-            _ignore_resource_types = self.ignore_resource_types
-            if request.meta.get('pyppeteer', {}).get('ignore_resource_types') is not None:
-                _ignore_resource_types = request.meta.get('pyppeteer', {}).get('ignore_resource_types')
-            if pu_request.resourceType in _ignore_resource_types:
-                await pu_request.abort()
-            else:
-                await pu_request.continue_(overrides)
+                # handle resource types
+                _ignore_resource_types = self.ignore_resource_types
+                if request.meta.get('pyppeteer', {}).get('ignore_resource_types') is not None:
+                    _ignore_resource_types = request.meta.get('pyppeteer', {}).get('ignore_resource_types')
+                if pu_request.resourceType in _ignore_resource_types:
+                    await pu_request.abort()
+                else:
+                    await pu_request.continue_(overrides)
 
         _timeout = self.download_timeout
         if pyppeteer_meta.get('timeout') is not None:
