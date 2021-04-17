@@ -1,5 +1,17 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.1.0 (2021-04-17)
+
+### Buf Fixes & Features
+
+* fix pyppeteer_meta name error
+* add chrome pretend test
+* update pretend script & fix local pretend invalid
+
+### Bug Fixes
+
+* Fix bug about executablePath arg name
+
 ## 0.0.13 (2020-10-30)
 
 ### Bug Fixes
