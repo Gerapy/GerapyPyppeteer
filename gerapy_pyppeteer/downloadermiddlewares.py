@@ -1,16 +1,18 @@
-import sys
 import asyncio
+import sys
+import urllib.parse
 from io import BytesIO
+
+import twisted.internet
+from pyppeteer import launch
 from pyppeteer.errors import PageError, TimeoutError
 from scrapy.http import HtmlResponse
-import twisted.internet
 from scrapy.utils.python import global_object_name
 from twisted.internet.asyncioreactor import AsyncioSelectorReactor
 from twisted.internet.defer import Deferred
-from pyppeteer import launch
+
 from gerapy_pyppeteer.pretend import SCRIPTS as PRETEND_SCRIPTS
 from gerapy_pyppeteer.settings import *
-import urllib.parse
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -136,6 +138,12 @@ class PyppeteerMiddleware(object):
         :param spider:
         :return:
         """
+        # get pyppeteer meta
+        pyppeteer_meta = request.meta.get('pyppeteer') or {}
+        logger.debug('pyppeteer_meta %s', pyppeteer_meta)
+        if not isinstance(pyppeteer_meta, dict) or len(pyppeteer_meta.keys()) == 0:
+            return
+
         options = {
             'headless': self.headless,
             'dumpio': self.dumpio,
@@ -144,10 +152,6 @@ class PyppeteerMiddleware(object):
                 f'--window-size={self.window_width},{self.window_height}',
             ]
         }
-        if self.pretend:
-            options['ignoreDefaultArgs'] = [
-                '--enable-automation'
-            ]
         if self.executable_path:
             options['executablePath'] = self.executable_path
         if self.ignore_https_errors:
@@ -177,11 +181,15 @@ class PyppeteerMiddleware(object):
         if self.disable_gpu:
             options['args'].append('--disable-gpu')
 
-        # get pyppeteer meta
-        pyppeteer_meta = request.meta.get('pyppeteer') or {}
-        logger.debug('pyppeteer_meta %s', pyppeteer_meta)
-        if not isinstance(pyppeteer_meta, dict) or len(pyppeteer_meta.keys()) == 0:
-            return
+        # pretend as normal browser
+        _pretend = self.pretend  # get global pretend setting
+        if pyppeteer_meta.get('pretend') is not None:
+            _pretend = pyppeteer_meta.get('pretend')  # get local pretend setting to overwrite global
+        if _pretend:
+            options['ignoreDefaultArgs'] = [
+                '--enable-automation'
+            ]
+            options['args'].append('--disable-blink-features=AutomationControlled')
 
         # set proxy
         _proxy = request.meta.get('proxy')
@@ -196,11 +204,8 @@ class PyppeteerMiddleware(object):
         page = await browser.newPage()
         await page.setViewport({'width': self.window_width, 'height': self.window_height})
 
-        # pretend as normal browser
-        _pretend = self.pretend
-        if pyppeteer_meta.get('pretend') is not None:
-            _pretend = pyppeteer_meta.get('pretend')
         if _pretend:
+            logger.debug('PRETEND_SCRIPTS is run')
             for script in PRETEND_SCRIPTS:
                 await page.evaluateOnNewDocument(script)
 
@@ -220,23 +225,24 @@ class PyppeteerMiddleware(object):
         # the headers must be set using request interception
         await page.setRequestInterception(self.enable_request_interception)
 
-        @page.on('request')
-        async def _handle_interception(pu_request):
-            # handle headers
-            overrides = {
-                'headers': {
-                    k.decode(): ','.join(map(lambda v: v.decode(), v))
-                    for k, v in request.headers.items()
+        if self.enable_request_interception:
+            @page.on('request')
+            async def _handle_interception(pu_request):
+                # handle headers
+                overrides = {
+                    'headers': {
+                        k.decode(): ','.join(map(lambda v: v.decode(), v))
+                        for k, v in pu_request.headers.items()
+                    }
                 }
-            }
-            # handle resource types
-            _ignore_resource_types = self.ignore_resource_types
-            if request.meta.get('pyppeteer', {}).get('ignore_resource_types') is not None:
-                _ignore_resource_types = request.meta.get('pyppeteer', {}).get('ignore_resource_types')
-            if pu_request.resourceType in _ignore_resource_types:
-                await pu_request.abort()
-            else:
-                await pu_request.continue_(overrides)
+                # handle resource types
+                _ignore_resource_types = self.ignore_resource_types
+                if request.meta.get('pyppeteer', {}).get('ignore_resource_types') is not None:
+                    _ignore_resource_types = request.meta.get('pyppeteer', {}).get('ignore_resource_types')
+                if pu_request.resourceType in _ignore_resource_types:
+                    await pu_request.abort()
+                else:
+                    await pu_request.continue_(overrides)
 
         _timeout = self.download_timeout
         if pyppeteer_meta.get('timeout') is not None:
