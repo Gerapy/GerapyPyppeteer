@@ -13,7 +13,7 @@ class PretendTestSpider(scrapy.Spider):
 
     def start_requests(self):
         url = 'https://bot.sannysoft.com/'
-        yield PyppeteerRequest(url=url, callback=self.parse_index, pretend=True)
+        yield PyppeteerRequest(url=url, callback=self.parse_index, pretend=True, screenshot=False)
 
     def parse_index(self, response):
         import_test_name = response.xpath("//th[contains(text(), 'Test Name')]/../following-sibling::tr")

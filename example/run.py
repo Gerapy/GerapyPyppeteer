@@ -1,3 +1,3 @@
 from scrapy.cmdline import execute
 
-execute('scrapy crawl book'.split())
+execute('scrapy crawl pretend_test'.split())
