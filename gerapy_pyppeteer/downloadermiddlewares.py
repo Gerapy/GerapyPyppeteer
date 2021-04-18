@@ -94,6 +94,8 @@ class PyppeteerMiddleware(object):
         # init settings
         cls.window_width = settings.get('GERAPY_PYPPETEER_WINDOW_WIDTH', GERAPY_PYPPETEER_WINDOW_WIDTH)
         cls.window_height = settings.get('GERAPY_PYPPETEER_WINDOW_HEIGHT', GERAPY_PYPPETEER_WINDOW_HEIGHT)
+        cls.default_user_agent = settings.get('GERAPY_PYPPETEER_DEFAULT_USER_AGENT',
+                                              GERAPY_PYPPETEER_DEFAULT_USER_AGENT)
         cls.headless = settings.get('GERAPY_PYPPETEER_HEADLESS', GERAPY_PYPPETEER_HEADLESS)
         cls.dumpio = settings.get('GERAPY_PYPPETEER_DUMPIO', GERAPY_PYPPETEER_DUMPIO)
         cls.ignore_https_errors = settings.get('GERAPY_PYPPETEER_IGNORE_HTTPS_ERRORS',
@@ -205,6 +207,11 @@ class PyppeteerMiddleware(object):
         await page.setViewport({'width': self.window_width, 'height': self.window_height})
 
         if _pretend:
+            _default_user_agent = self.default_user_agent
+            # get Scrapy request ua, exclude default('Scrapy/2.5.0 (+https://scrapy.org)')
+            if 'Scrapy' not in request.headers.get('User-Agent').decode():
+                _default_user_agent = request.headers.get('User-Agent').decode()
+            await page.setUserAgent(_default_user_agent)
             logger.debug('PRETEND_SCRIPTS is run')
             for script in PRETEND_SCRIPTS:
                 await page.evaluateOnNewDocument(script)
@@ -230,10 +237,7 @@ class PyppeteerMiddleware(object):
             async def _handle_interception(pu_request):
                 # handle headers
                 overrides = {
-                    'headers': {
-                        k.decode(): ','.join(map(lambda v: v.decode(), v))
-                        for k, v in pu_request.headers.items()
-                    }
+                    'headers': pu_request.headers
                 }
                 # handle resource types
                 _ignore_resource_types = self.ignore_resource_types
