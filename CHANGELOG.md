@@ -1,5 +1,12 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.1.1 (2021-04-18)
+
+### Buf Fixes & Features
+
+* fix pu_request.headers decode error
+* add ua setting
+
 ## 0.1.0 (2021-04-17)
 
 ### Buf Fixes & Features
