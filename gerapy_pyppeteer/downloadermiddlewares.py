@@ -87,48 +87,68 @@ class PyppeteerMiddleware(object):
         :return:
         """
         settings = crawler.settings
-        logging_level = settings.get('GERAPY_PYPPETEER_LOGGING_LEVEL', GERAPY_PYPPETEER_LOGGING_LEVEL)
+        logging_level = settings.get(
+            'GERAPY_PYPPETEER_LOGGING_LEVEL', GERAPY_PYPPETEER_LOGGING_LEVEL)
         logging.getLogger('websockets').setLevel(logging_level)
         logging.getLogger('pyppeteer').setLevel(logging_level)
 
         # init settings
-        cls.window_width = settings.get('GERAPY_PYPPETEER_WINDOW_WIDTH', GERAPY_PYPPETEER_WINDOW_WIDTH)
-        cls.window_height = settings.get('GERAPY_PYPPETEER_WINDOW_HEIGHT', GERAPY_PYPPETEER_WINDOW_HEIGHT)
+        cls.window_width = settings.get(
+            'GERAPY_PYPPETEER_WINDOW_WIDTH', GERAPY_PYPPETEER_WINDOW_WIDTH)
+        cls.window_height = settings.get(
+            'GERAPY_PYPPETEER_WINDOW_HEIGHT', GERAPY_PYPPETEER_WINDOW_HEIGHT)
         cls.default_user_agent = settings.get('GERAPY_PYPPETEER_DEFAULT_USER_AGENT',
                                               GERAPY_PYPPETEER_DEFAULT_USER_AGENT)
-        cls.headless = settings.get('GERAPY_PYPPETEER_HEADLESS', GERAPY_PYPPETEER_HEADLESS)
-        cls.dumpio = settings.get('GERAPY_PYPPETEER_DUMPIO', GERAPY_PYPPETEER_DUMPIO)
+        cls.headless = settings.get(
+            'GERAPY_PYPPETEER_HEADLESS', GERAPY_PYPPETEER_HEADLESS)
+        cls.dumpio = settings.get(
+            'GERAPY_PYPPETEER_DUMPIO', GERAPY_PYPPETEER_DUMPIO)
         cls.ignore_https_errors = settings.get('GERAPY_PYPPETEER_IGNORE_HTTPS_ERRORS',
                                                GERAPY_PYPPETEER_IGNORE_HTTPS_ERRORS)
-        cls.slow_mo = settings.get('GERAPY_PYPPETEER_SLOW_MO', GERAPY_PYPPETEER_SLOW_MO)
+        cls.slow_mo = settings.get(
+            'GERAPY_PYPPETEER_SLOW_MO', GERAPY_PYPPETEER_SLOW_MO)
         cls.ignore_default_args = settings.get('GERAPY_PYPPETEER_IGNORE_DEFAULT_ARGS',
                                                GERAPY_PYPPETEER_IGNORE_DEFAULT_ARGS)
-        cls.handle_sigint = settings.get('GERAPY_PYPPETEER_HANDLE_SIGINT', GERAPY_PYPPETEER_HANDLE_SIGINT)
-        cls.handle_sigterm = settings.get('GERAPY_PYPPETEER_HANDLE_SIGTERM', GERAPY_PYPPETEER_HANDLE_SIGTERM)
-        cls.handle_sighup = settings.get('GERAPY_PYPPETEER_HANDLE_SIGHUP', GERAPY_PYPPETEER_HANDLE_SIGHUP)
-        cls.auto_close = settings.get('GERAPY_PYPPETEER_AUTO_CLOSE', GERAPY_PYPPETEER_AUTO_CLOSE)
-        cls.devtools = settings.get('GERAPY_PYPPETEER_DEVTOOLS', GERAPY_PYPPETEER_DEVTOOLS)
-        cls.executable_path = settings.get('GERAPY_PYPPETEER_EXECUTABLE_PATH', GERAPY_PYPPETEER_EXECUTABLE_PATH)
+        cls.handle_sigint = settings.get(
+            'GERAPY_PYPPETEER_HANDLE_SIGINT', GERAPY_PYPPETEER_HANDLE_SIGINT)
+        cls.handle_sigterm = settings.get(
+            'GERAPY_PYPPETEER_HANDLE_SIGTERM', GERAPY_PYPPETEER_HANDLE_SIGTERM)
+        cls.handle_sighup = settings.get(
+            'GERAPY_PYPPETEER_HANDLE_SIGHUP', GERAPY_PYPPETEER_HANDLE_SIGHUP)
+        cls.auto_close = settings.get(
+            'GERAPY_PYPPETEER_AUTO_CLOSE', GERAPY_PYPPETEER_AUTO_CLOSE)
+        cls.devtools = settings.get(
+            'GERAPY_PYPPETEER_DEVTOOLS', GERAPY_PYPPETEER_DEVTOOLS)
+        cls.executable_path = settings.get(
+            'GERAPY_PYPPETEER_EXECUTABLE_PATH', GERAPY_PYPPETEER_EXECUTABLE_PATH)
         cls.disable_extensions = settings.get('GERAPY_PYPPETEER_DISABLE_EXTENSIONS',
                                               GERAPY_PYPPETEER_DISABLE_EXTENSIONS)
-        cls.hide_scrollbars = settings.get('GERAPY_PYPPETEER_HIDE_SCROLLBARS', GERAPY_PYPPETEER_HIDE_SCROLLBARS)
-        cls.mute_audio = settings.get('GERAPY_PYPPETEER_MUTE_AUDIO', GERAPY_PYPPETEER_MUTE_AUDIO)
-        cls.no_sandbox = settings.get('GERAPY_PYPPETEER_NO_SANDBOX', GERAPY_PYPPETEER_NO_SANDBOX)
+        cls.hide_scrollbars = settings.get(
+            'GERAPY_PYPPETEER_HIDE_SCROLLBARS', GERAPY_PYPPETEER_HIDE_SCROLLBARS)
+        cls.mute_audio = settings.get(
+            'GERAPY_PYPPETEER_MUTE_AUDIO', GERAPY_PYPPETEER_MUTE_AUDIO)
+        cls.no_sandbox = settings.get(
+            'GERAPY_PYPPETEER_NO_SANDBOX', GERAPY_PYPPETEER_NO_SANDBOX)
         cls.disable_setuid_sandbox = settings.get('GERAPY_PYPPETEER_DISABLE_SETUID_SANDBOX',
                                                   GERAPY_PYPPETEER_DISABLE_SETUID_SANDBOX)
-        cls.disable_gpu = settings.get('GERAPY_PYPPETEER_DISABLE_GPU', GERAPY_PYPPETEER_DISABLE_GPU)
+        cls.disable_gpu = settings.get(
+            'GERAPY_PYPPETEER_DISABLE_GPU', GERAPY_PYPPETEER_DISABLE_GPU)
         cls.download_timeout = settings.get('GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT',
                                             settings.get('DOWNLOAD_TIMEOUT', GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT))
         cls.ignore_resource_types = settings.get('GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES',
                                                  GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES)
-        cls.screenshot = settings.get('GERAPY_PYPPETEER_SCREENSHOT', GERAPY_PYPPETEER_SCREENSHOT)
-        cls.pretend = settings.get('GERAPY_PYPPETEER_PRETEND', GERAPY_PYPPETEER_PRETEND)
-        cls.sleep = settings.get('GERAPY_PYPPETEER_SLEEP', GERAPY_PYPPETEER_SLEEP)
+        cls.screenshot = settings.get(
+            'GERAPY_PYPPETEER_SCREENSHOT', GERAPY_PYPPETEER_SCREENSHOT)
+        cls.pretend = settings.get(
+            'GERAPY_PYPPETEER_PRETEND', GERAPY_PYPPETEER_PRETEND)
+        cls.sleep = settings.get(
+            'GERAPY_PYPPETEER_SLEEP', GERAPY_PYPPETEER_SLEEP)
         cls.enable_request_interception = settings.getbool('GERAPY_ENABLE_REQUEST_INTERCEPTION',
                                                            GERAPY_ENABLE_REQUEST_INTERCEPTION)
         cls.retry_enabled = settings.getbool('RETRY_ENABLED')
         cls.max_retry_times = settings.getint('RETRY_TIMES')
-        cls.retry_http_codes = set(int(x) for x in settings.getlist('RETRY_HTTP_CODES'))
+        cls.retry_http_codes = set(int(x)
+                                   for x in settings.getlist('RETRY_HTTP_CODES'))
         cls.priority_adjust = settings.getint('RETRY_PRIORITY_ADJUST')
 
         return cls()
@@ -186,12 +206,14 @@ class PyppeteerMiddleware(object):
         # pretend as normal browser
         _pretend = self.pretend  # get global pretend setting
         if pyppeteer_meta.get('pretend') is not None:
-            _pretend = pyppeteer_meta.get('pretend')  # get local pretend setting to overwrite global
+            # get local pretend setting to overwrite global
+            _pretend = pyppeteer_meta.get('pretend')
         if _pretend:
             options['ignoreDefaultArgs'] = [
                 '--enable-automation'
             ]
-            options['args'].append('--disable-blink-features=AutomationControlled')
+            options['args'].append(
+                '--disable-blink-features=AutomationControlled')
 
         # set proxy
         _proxy = request.meta.get('proxy')
@@ -210,7 +232,8 @@ class PyppeteerMiddleware(object):
             _default_user_agent = self.default_user_agent
             # get Scrapy request ua, exclude default('Scrapy/2.5.0 (+https://scrapy.org)')
             if 'Scrapy' not in request.headers.get('User-Agent').decode():
-                _default_user_agent = request.headers.get('User-Agent').decode()
+                _default_user_agent = request.headers.get(
+                    'User-Agent').decode()
             await page.setUserAgent(_default_user_agent)
             logger.debug('PRETEND_SCRIPTS is run')
             for script in PRETEND_SCRIPTS:
@@ -242,7 +265,8 @@ class PyppeteerMiddleware(object):
                 # handle resource types
                 _ignore_resource_types = self.ignore_resource_types
                 if request.meta.get('pyppeteer', {}).get('ignore_resource_types') is not None:
-                    _ignore_resource_types = request.meta.get('pyppeteer', {}).get('ignore_resource_types')
+                    _ignore_resource_types = request.meta.get(
+                        'pyppeteer', {}).get('ignore_resource_types')
                 if pu_request.resourceType in _ignore_resource_types:
                     await pu_request.abort()
                 else:
@@ -282,7 +306,8 @@ class PyppeteerMiddleware(object):
                 else:
                     await page.waitFor(_wait_for)
             except TimeoutError:
-                logger.error('error waiting for %s of %s', _wait_for, request.url)
+                logger.error('error waiting for %s of %s',
+                             _wait_for, request.url)
                 await page.close()
                 await browser.close()
                 return self._retry(request, 504, spider)
@@ -325,7 +350,8 @@ class PyppeteerMiddleware(object):
         await browser.close()
 
         if not response:
-            logger.error('get null response by pyppeteer of url %s', request.url)
+            logger.error(
+                'get null response by pyppeteer of url %s', request.url)
 
         # Necessary to bypass the compression middleware (?)
         response.headers.pop('content-encoding', None)

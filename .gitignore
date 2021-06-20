@@ -5,6 +5,7 @@
 
 .DS_Store
 .idea/
+.vscode/
 
 # User-specific stuff
 .idea/**/workspace.xml

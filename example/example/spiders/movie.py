@@ -13,7 +13,10 @@ class MovieSpider(scrapy.Spider):
     allowed_domains = ['antispider1.scrape.center']
     base_url = 'https://antispider1.scrape.center'
     max_page = 10
-    
+    custom_settings = {
+        'GERAPY_PYPPETEER_PRETEND': False
+    }
+
     def start_requests(self):
         """
         first page
@@ -26,7 +29,7 @@ class MovieSpider(scrapy.Spider):
                 'name': 'germey'
             }
             yield PyppeteerRequest(url, callback=self.parse_index, priority=10, wait_for='.item', pretend=True, cookies=cookies)
-    
+
     def parse_index(self, response):
         """
         extract movies
@@ -39,7 +42,7 @@ class MovieSpider(scrapy.Spider):
             detail_url = response.urljoin(href)
             logger.info('detail url %s', detail_url)
             yield PyppeteerRequest(detail_url, callback=self.parse_detail, wait_for='.item')
-    
+
     def parse_detail(self, response):
         """
         process detail info of book
@@ -49,6 +52,7 @@ class MovieSpider(scrapy.Spider):
         name = response.css('h2::text').extract_first()
         categories = response.css('.categories button span::text').extract()
         score = response.css('.score::text').extract_first()
-        categories = [category.strip() for category in categories] if categories else []
+        categories = [category.strip()
+                      for category in categories] if categories else []
         score = score.strip() if score else None
         yield MovieItem(name=name, categories=categories, score=score)
