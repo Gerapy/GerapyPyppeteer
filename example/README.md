@@ -17,3 +17,14 @@ python3 run.py
 ```shell script
 docker run germey/gerapy-pyppeteer-example
 ```
+
+If you want to build your own docker image, please remember to set:
+
+```python
+GERAPY_PYPPETEER_HEADLESS = True
+GERAPY_PYPPETEER_NO_SANDBOX = True (default is True)
+```
+
+In your settings.py file.
+
+Otherwise, it won't works well.
