@@ -312,11 +312,19 @@ class PyppeteerMiddleware(object):
                 await browser.close()
                 return self._retry(request, 504, spider)
 
+        _actions_result = None
+        # evaluate actions
+        if pyppeteer_meta.get('actions'):
+            _actions = pyppeteer_meta.get('actions')
+            logger.debug('evaluating %s', _actions)
+            _actions_result = await _actions(page)
+
+        _script_result = None
         # evaluate script
         if pyppeteer_meta.get('script'):
             _script = pyppeteer_meta.get('script')
             logger.debug('evaluating %s', _script)
-            await page.evaluate(_script)
+            _script_result = await page.evaluate(_script)
 
         # sleep
         _sleep = self.sleep
@@ -365,6 +373,10 @@ class PyppeteerMiddleware(object):
             encoding='utf-8',
             request=request
         )
+        if _script_result:
+            response.meta['script_result'] = _script_result
+        if _actions_result:
+            response.meta['actions_result'] = _actions_result
         if screenshot:
             response.meta['screenshot'] = screenshot
         return response

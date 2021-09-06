@@ -36,7 +36,7 @@ web page which you configured the request as PyppeteerRequest.
 
 GerapyPyppeteer provides some optional settings.
 
-### Concurrency 
+### Concurrency
 
 You can directly use Scrapy's setting to set Concurrency of Pyppeteer,
 for example:
@@ -47,7 +47,7 @@ CONCURRENT_REQUESTS = 3
 
 ### Pretend as Real Browser
 
-Some website will detect WebDriver or Headless, GerapyPyppeteer can 
+Some website will detect WebDriver or Headless, GerapyPyppeteer can
 pretend Chromium by inject scripts. This is enabled by default.
 
 You can close it if website does not detect WebDriver to speed up:
@@ -56,7 +56,7 @@ You can close it if website does not detect WebDriver to speed up:
 GERAPY_PYPPETEER_PRETEND = False
 ```
 
-Also you can use `pretend` attribute in `PyppeteerRequest` to overwrite this 
+Also you can use `pretend` attribute in `PyppeteerRequest` to overwrite this
 configuration.
 
 ### Logging Level
@@ -64,7 +64,7 @@ configuration.
 By default, Pyppeteer will log all the debug messages, so GerapyPyppeteer
 configured the logging level of Pyppeteer to WARNING.
 
-If you want to see more logs from Pyppeteer, you can change the this setting: 
+If you want to see more logs from Pyppeteer, you can change the this setting:
 
 ```python
 import logging
@@ -82,11 +82,11 @@ GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT = 30
 
 ### Headless
 
-By default, Pyppeteer is running in `Headless` mode, you can also 
+By default, Pyppeteer is running in `Headless` mode, you can also
 change it to `False` as you need, default is `True`:
 
 ```python
-GERAPY_PYPPETEER_HEADLESS = False 
+GERAPY_PYPPETEER_HEADLESS = False
 ```
 
 ### Window Size
@@ -137,19 +137,19 @@ GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES = ['stylesheet', 'script']
 
 All of the optional resource type list:
 
-* document: the Original HTML document
-* stylesheet: CSS files
-* script: JavaScript files
-* image: Images
-* media: Media files such as audios or videos
-* font: Fonts files
-* texttrack: Text Track files
-* xhr: Ajax Requests
-* fetch: Fetch Requests
-* eventsource: Event Source
-* websocket: Websocket
-* manifest: Manifest files
-* other: Other files
+- document: the Original HTML document
+- stylesheet: CSS files
+- script: JavaScript files
+- image: Images
+- media: Media files such as audios or videos
+- font: Fonts files
+- texttrack: Text Track files
+- xhr: Ajax Requests
+- fetch: Fetch Requests
+- eventsource: Event Source
+- websocket: Websocket
+- manifest: Manifest files
+- other: Other files
 
 ### Screenshot
 
@@ -158,7 +158,7 @@ You can get screenshot of loaded page, you can pass `screenshot` args to `Pyppet
 - `type` (str): Specify screenshot type, can be either `jpeg` or `png`. Defaults to `png`.
 - `quality` (int): The quality of the image, between 0-100. Not applicable to `png` image.
 - `fullPage` (bool): When true, take a screenshot of the full scrollable page. Defaults to `False`.
-- `clip`  (dict): An object which specifies clipping region of the page. This option should have the following fields:
+- `clip` (dict): An object which specifies clipping region of the page. This option should have the following fields:
   - `x` (int): x-coordinate of top-left corner of clip area.
   - `y` (int): y-coordinate of top-left corner of clip area.
   - `width` (int): width of clipping area.
@@ -200,20 +200,20 @@ GERAPY_PYPPETEER_SCREENSHOT = {
 
 `PyppeteerRequest` provide args which can override global settings above.
 
-* url: request url
-* callback: callback
-* one of "load", "domcontentloaded", "networkidle0", "networkidle2".
-        see https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.goto, default is `domcontentloaded`
-* wait_for: wait for some element to load, also supports dict
-* script: script to execute
-* proxy: use proxy for this time, like `http://x.x.x.x:x`
-* sleep: time to sleep after loaded, override `GERAPY_PYPPETEER_SLEEP`
-* timeout: load timeout, override `GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT`
-* ignore_resource_types: ignored resource types, override `GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES`
-* pretend: pretend as normal browser, override `GERAPY_PYPPETEER_PRETEND`
-* screenshot: ignored resource types, see
-        https://miyakogi.github.io/pyppeteer/_modules/pyppeteer/page.html#Page.screenshot,
-        override `GERAPY_PYPPETEER_SCREENSHOT`
+- url: request url
+- callback: callback
+- one of "load", "domcontentloaded", "networkidle0", "networkidle2".
+  see https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.goto, default is `domcontentloaded`
+- wait_for: wait for some element to load, also supports dict
+- script: script to execute
+- proxy: use proxy for this time, like `http://x.x.x.x:x`
+- sleep: time to sleep after loaded, override `GERAPY_PYPPETEER_SLEEP`
+- timeout: load timeout, override `GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT`
+- ignore_resource_types: ignored resource types, override `GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES`
+- pretend: pretend as normal browser, override `GERAPY_PYPPETEER_PRETEND`
+- screenshot: ignored resource types, see
+  https://miyakogi.github.io/pyppeteer/_modules/pyppeteer/page.html#Page.screenshot,
+  override `GERAPY_PYPPETEER_SCREENSHOT`
 
 For example, you can configure PyppeteerRequest as:
 
@@ -221,20 +221,48 @@ For example, you can configure PyppeteerRequest as:
 from gerapy_pyppeteer import PyppeteerRequest
 
 def parse(self, response):
-    yield PyppeteerRequest(url, 
+    yield PyppeteerRequest(url,
         callback=self.parse_detail,
         wait_until='domcontentloaded',
         wait_for='title',
-        script='() => { console.log(document) }',
+        script='() => { return {name: "Germey"} }',
         sleep=2)
 ```
 
 Then Pyppeteer will:
-* wait for document to load
-* wait for title to load
-* execute `console.log(document)` script
-* sleep for 2s
-* return the rendered web page content
+
+- wait for document to load
+- wait for title to load
+- execute `console.log(document)` script
+- sleep for 2s
+- return the rendered web page content, get from `response.meta['screenshot']`
+- return the script executed result, get from `response.meta['script_result']`
+
+For waiting mechanism controlled by JavaScript, you can use await in `script`, for example:
+
+```python
+js = '''async () => {
+    await new Promise(resolve => setTimeout(resolve, 10000));
+    return {
+        'name': 'Germey'
+    }
+}
+'''
+yield PyppeteerRequest(url, callback=self.parse, script=js)
+```
+
+Then you can get the script result from `response.meta['script_result']`, result is `{'name': 'Germey'}`.
+
+If you think the JavaScript is wired to write, you can use actions argument to define a function to execute `Python` based functions, for example:
+
+```python
+async def execute_actions(page: Page):
+    await page.evaluate('() => { document.title = "Hello World"; }')
+    return 1
+yield PyppeteerRequest(url, callback=self.parse, actions=execute_actions)
+```
+
+Then you can get the actions result from `response.meta['actions_result']`, result is `1`.
 
 ## Example
 
@@ -366,4 +394,3 @@ chromiumExecutable = {
 ```
 
 You can find your own operating system, modify your chrome or chrome executable path.
-

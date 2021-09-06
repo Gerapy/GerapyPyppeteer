@@ -1,5 +1,12 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.2.2 (2021-09-07)
+
+### Features
+
+- add support for executing Python based functions
+- add support for returning script result
+
 ## 0.1.2 (2021-06-20)
 
 ### Buf Fixes & Features
