@@ -150,7 +150,9 @@ class PyppeteerMiddleware(object):
         cls.retry_http_codes = set(int(x)
                                    for x in settings.getlist('RETRY_HTTP_CODES'))
         cls.priority_adjust = settings.getint('RETRY_PRIORITY_ADJUST')
-
+        cls.proxy_server = settings.get('PROXY_SERVER')
+        cls.proxyUser = settings.get('PROXY_USER')
+        cls.proxyPass = settings.get('PROXY_PASS')
         return cls()
 
     async def _process_request(self, request, spider):
@@ -221,11 +223,15 @@ class PyppeteerMiddleware(object):
             _proxy = pyppeteer_meta.get('proxy')
         if _proxy:
             options['args'].append(f'--proxy-server={_proxy}')
-
+        if self.proxy_server:
+            options['args'].append(f'--proxy-server={self.proxy_server}')
         logger.debug('set options %s', options)
 
         browser = await launch(options)
         page = await browser.newPage()
+        if self.proxyUser and self.proxyPass:
+            authen = {"username": self.proxyUser, "password": self.proxyPass}
+            await page.authenticate(authen)
         await page.setViewport({'width': self.window_width, 'height': self.window_height})
 
         if _pretend:
