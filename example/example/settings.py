@@ -23,9 +23,9 @@ LOG_LEVEL = 'DEBUG'
 
 GERAPY_PYPPETEER_PRETEND = False
 
-GERAPY_PYPPETEER_SCREENSHOT = {
-    'type': 'png',
-    'fullPage': True
-}
+# GERAPY_PYPPETEER_SCREENSHOT = {
+#     'type': 'png',
+#     'fullPage': True
+# }
 
 GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT = 10

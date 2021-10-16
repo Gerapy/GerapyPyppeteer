@@ -5,7 +5,7 @@ from io import BytesIO
 
 import twisted.internet
 from pyppeteer import launch
-from pyppeteer.errors import PageError, TimeoutError
+from pyppeteer.errors import NetworkError, PageError, TimeoutError
 from scrapy.http import HtmlResponse
 from scrapy.utils.python import global_object_name
 from twisted.internet.asyncioreactor import AsyncioSelectorReactor
@@ -226,7 +226,16 @@ class PyppeteerMiddleware(object):
         logger.debug('set options %s', options)
 
         browser = await launch(options)
-        page = await browser.newPage()
+        page = None
+
+        try:
+            page = await browser.newPage()
+        except NetworkError:
+            logger.error(
+                'network error occurred while launching pyppeteer page')
+            await page.close()
+            await browser.close()
+            return self._retry(request, 504, spider)
 
         # set proxy auth credential, see more from
         # https://pyppeteer.github.io/pyppeteer/reference.html?highlight=auth#pyppeteer.page.Page.authenticate
