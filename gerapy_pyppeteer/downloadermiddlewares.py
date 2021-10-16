@@ -150,9 +150,9 @@ class PyppeteerMiddleware(object):
         cls.retry_http_codes = set(int(x)
                                    for x in settings.getlist('RETRY_HTTP_CODES'))
         cls.priority_adjust = settings.getint('RETRY_PRIORITY_ADJUST')
-        cls.proxy_server = settings.get('PROXY_SERVER')
-        cls.proxyUser = settings.get('PROXY_USER')
-        cls.proxyPass = settings.get('PROXY_PASS')
+        cls.proxy = settings.get('GERAPY_PYPPETEER_PROXY')
+        cls.proxy_credential = settings.get(
+            'GERAPY_PYPPETEER_PROXY_CREDENTIAL')
         return cls()
 
     async def _process_request(self, request, spider):
@@ -218,20 +218,24 @@ class PyppeteerMiddleware(object):
                 '--disable-blink-features=AutomationControlled')
 
         # set proxy
-        _proxy = request.meta.get('proxy')
+        _proxy = self.proxy
         if pyppeteer_meta.get('proxy') is not None:
             _proxy = pyppeteer_meta.get('proxy')
         if _proxy:
             options['args'].append(f'--proxy-server={_proxy}')
-        if self.proxy_server:
-            options['args'].append(f'--proxy-server={self.proxy_server}')
         logger.debug('set options %s', options)
 
         browser = await launch(options)
         page = await browser.newPage()
-        if self.proxyUser and self.proxyPass:
-            authen = {"username": self.proxyUser, "password": self.proxyPass}
-            await page.authenticate(authen)
+
+        # set proxy auth credential, see more from
+        # https://pyppeteer.github.io/pyppeteer/reference.html?highlight=auth#pyppeteer.page.Page.authenticate
+        _proxy_credential = self.proxy_credential
+        if pyppeteer_meta.get('proxy_credential') is not None:
+            _proxy_credential = pyppeteer_meta.get('proxy_credential')
+        if _proxy_credential:
+            await page.authenticate(_proxy_credential)
+
         await page.setViewport({'width': self.window_width, 'height': self.window_height})
 
         if _pretend:
