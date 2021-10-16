@@ -8,8 +8,8 @@ class PyppeteerRequest(Request):
     """
 
     def __init__(self, url, callback=None, wait_until=None, wait_for=None, script=None, actions=None, proxy=None,
-                 sleep=None, timeout=None, ignore_resource_types=None, pretend=None, screenshot=None, meta=None, *args,
-                 **kwargs):
+                 proxy_credential=None, sleep=None, timeout=None, ignore_resource_types=None, pretend=None, screenshot=None, meta=None,
+                 *args, **kwargs):
         """
         :param url: request url
         :param callback: callback
@@ -19,6 +19,7 @@ class PyppeteerRequest(Request):
         :param script: script to execute
         :param actions: actions defined for execution of Page object
         :param proxy: use proxy for this time, like `http://x.x.x.x:x`
+        :param proxy_credential: the proxy credential, like `{'username': 'xxxx', 'password': 'xxxx'}`
         :param sleep: time to sleep after loaded, override `GERAPY_PYPPETEER_SLEEP`
         :param timeout: load timeout, override `GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT`
         :param ignore_resource_types: ignored resource types, override `GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES`
@@ -45,6 +46,8 @@ class PyppeteerRequest(Request):
             'sleep') is not None else sleep
         self.proxy = pyppeteer_meta.get('proxy') if pyppeteer_meta.get(
             'proxy') is not None else proxy
+        self.proxy_credential = pyppeteer_meta.get('proxy_credential') if pyppeteer_meta.get(
+            'proxy_credential') is not None else proxy_credential
         self.pretend = pyppeteer_meta.get('pretend') if pyppeteer_meta.get(
             'pretend') is not None else pretend
         self.timeout = pyppeteer_meta.get('timeout') if pyppeteer_meta.get(
@@ -61,6 +64,7 @@ class PyppeteerRequest(Request):
         pyppeteer_meta['actions'] = self.actions
         pyppeteer_meta['sleep'] = self.sleep
         pyppeteer_meta['proxy'] = self.proxy
+        pyppeteer_meta['proxy_credential'] = self.proxy_credential
         pyppeteer_meta['pretend'] = self.pretend
         pyppeteer_meta['timeout'] = self.timeout
         pyppeteer_meta['screenshot'] = self.screenshot
