@@ -1,5 +1,10 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.2.3 (2021-10-16)
+
+- add support for proxy_credential
+- fix bug of network error and add retry
+
 ## 0.2.2 (2021-09-07)
 
 ### Features

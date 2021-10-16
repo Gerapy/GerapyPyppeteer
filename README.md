@@ -100,6 +100,18 @@ GERAPY_PYPPETEER_WINDOW_HEIGHT = 700
 
 Default is 1400, 700.
 
+### Proxy
+
+You can set a proxy channel via below this config:
+
+```python
+GERAPY_PYPPETEER_PROXY = 'http://tps254.kdlapi.com:15818'
+GERAPY_PYPPETEER_PROXY_CREDENTIAL = {
+  'username': 'xxx',
+  'password': 'xxxx'
+}
+```
+
 ### Pyppeteer Args
 
 You can also change the args of Pyppeteer, such as `dumpio`, `devtools`, etc.
@@ -206,7 +218,9 @@ GERAPY_PYPPETEER_SCREENSHOT = {
   see https://miyakogi.github.io/pyppeteer/reference.html#pyppeteer.page.Page.goto, default is `domcontentloaded`
 - wait_for: wait for some element to load, also supports dict
 - script: script to execute
+- actions: actions defined for execution of Page object
 - proxy: use proxy for this time, like `http://x.x.x.x:x`
+- proxy_credential: the proxy credential, like `{'username': 'xxxx', 'password': 'xxxx'}`
 - sleep: time to sleep after loaded, override `GERAPY_PYPPETEER_SLEEP`
 - timeout: load timeout, override `GERAPY_PYPPETEER_DOWNLOAD_TIMEOUT`
 - ignore_resource_types: ignored resource types, override `GERAPY_PYPPETEER_IGNORE_RESOURCE_TYPES`
@@ -263,6 +277,22 @@ yield PyppeteerRequest(url, callback=self.parse, actions=execute_actions)
 ```
 
 Then you can get the actions result from `response.meta['actions_result']`, result is `1`.
+
+Also you can define proxy and proxy_credential for each Reqest, for example:
+
+```python
+yield PyppeteerRequest(
+  self.base_url,
+  callback=self.parse_index,
+  priority=10,
+  proxy='http://tps254.kdlapi.com:15818',
+  proxy_credential={
+      'username': 'xxxx',
+      'password': 'xxxx'
+})
+```
+
+`proxy` and `proxy_credential` will override the settings `GERAPY_PYPPETEER_PROXY` and `GERAPY_PYPPETEER_PROXY_CREDENTIAL`.
 
 ## Example
 
