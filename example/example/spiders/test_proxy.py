@@ -16,8 +16,8 @@ class ProxySpider(scrapy.Spider):
     custom_settings = {
         'GERAPY_PYPPETEER_PROXY': 'http://tps254.kdlapi.com:15818',
         'GERAPY_PYPPETEER_PROXY_CREDENTIAL': {
-            'username': 't13436558503832',
-            'password': '32h7tau'
+            'username': '',
+            'password': ''
         }
     }
 
@@ -26,7 +26,14 @@ class ProxySpider(scrapy.Spider):
         first page
         :return:
         """
-        yield PyppeteerRequest(self.base_url, callback=self.parse_index, priority=10)
+        yield PyppeteerRequest(self.base_url,
+                               callback=self.parse_index,
+                               priority=10,
+                               proxy='http://tps254.kdlapi.com:15818',
+                               proxy_credential={
+                                   'username': '',
+                                   'password': ''
+                               })
 
     def parse_index(self, response):
         """
