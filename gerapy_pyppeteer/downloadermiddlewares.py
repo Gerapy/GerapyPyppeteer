@@ -310,7 +310,8 @@ class PyppeteerMiddleware(object):
                 options=options
             )
         except (PageError, TimeoutError):
-            logger.error('error rendering url %s using pyppeteer', request.url)
+            logger.exception(
+                'error rendering url %s using pyppeteer', request.url, exc_info=True)
             await page.close()
             await browser.close()
             return self._retry(request, 504, spider)
@@ -325,8 +326,8 @@ class PyppeteerMiddleware(object):
                 else:
                     await page.waitFor(_wait_for)
             except TimeoutError:
-                logger.error('error waiting for %s of %s',
-                             _wait_for, request.url)
+                logger.exception('error waiting for %s of %s',
+                                 _wait_for, request.url, exc_info=True)
                 await page.close()
                 await browser.close()
                 return self._retry(request, 504, spider)

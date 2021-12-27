@@ -1,5 +1,9 @@
 # Gerapy Pyppeteer Changelog
 
+## 0.2.4 (2021-12-27)
+
+- Expose error log for loading process
+
 ## 0.2.3 (2021-10-16)
 
 - add support for proxy_credential
